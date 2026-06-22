@@ -1,5 +1,4 @@
-'use strict';
-
+"use strict";
 
 const _has = (obj, key) => {
   return Object.prototype.hasOwnProperty.call(obj, key);
@@ -9,10 +8,12 @@ module.exports.assign = function (obj /*from1, from2, from3, ...*/) {
   const sources = Array.prototype.slice.call(arguments, 1);
   while (sources.length) {
     const source = sources.shift();
-    if (!source) { continue; }
+    if (!source) {
+      continue;
+    }
 
-    if (typeof source !== 'object') {
-      throw new TypeError(source + 'must be non-object');
+    if (typeof source !== "object") {
+      throw new TypeError(source + "must be non-object");
     }
 
     for (const p in source) {
@@ -24,7 +25,6 @@ module.exports.assign = function (obj /*from1, from2, from3, ...*/) {
 
   return obj;
 };
-
 
 // Join array of chunks to single array.
 module.exports.flattenChunks = (chunks) => {
