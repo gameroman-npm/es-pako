@@ -243,7 +243,7 @@ describe("pako patches for inflate", () => {
         const ok = inflator.push(buf, pako.constants.Z_SYNC_FLUSH);
 
         assert.ok(ok);
-        assert.ok(!inflator.err, "inflate error: " + inflator.err);
+        assert.ok(!inflator.err, `inflate error: ${inflator.err}`);
         assert.ok(count > 0, "onData was not called on Z_SYNC_FLUSH");
         assert.strictEqual(
           Buffer.concat(inflator.chunks.map(Buffer.from)).toString(),
@@ -276,7 +276,7 @@ describe("pako patches for inflate", () => {
           inflator.push(p1, pako.constants.Z_SYNC_FLUSH);
           inflator.push(p2, pako.constants.Z_SYNC_FLUSH);
 
-          assert.ok(!inflator.err, "inflate error: " + inflator.err);
+          assert.ok(!inflator.err, `inflate error: ${inflator.err}`);
           assert.deepStrictEqual(inflator.chunks, [
             "AAAA first ",
             "BBBB second",

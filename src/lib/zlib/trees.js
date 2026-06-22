@@ -1,39 +1,11 @@
-"use strict";
-
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
-
-/* eslint-disable space-unary-ops */
-
 /* Public constants ==========================================================*/
 /* ===========================================================================*/
 
-//const Z_FILTERED          = 1;
-//const Z_HUFFMAN_ONLY      = 2;
-//const Z_RLE               = 3;
 const Z_FIXED = 4;
-//const Z_DEFAULT_STRATEGY  = 0;
 
 /* Possible values of the data_type field (though see inflate()) */
 const Z_BINARY = 0;
 const Z_TEXT = 1;
-//const Z_ASCII             = 1; // = Z_TEXT
 const Z_UNKNOWN = 2;
 
 /*============================================================================*/
@@ -407,7 +379,7 @@ const gen_codes = (tree, max_code, bl_count) => {
   //Tracev((stderr,"\ngen_codes: max_code %d ", max_code));
 
   for (n = 0; n <= max_code; n++) {
-    let len = tree[n * 2 + 1] /*.Len*/;
+    const len = tree[n * 2 + 1]; /*.Len*/
     if (len === 0) {
       continue;
     }
@@ -788,7 +760,7 @@ const scan_tree = (s, tree, max_code) => {
   let prevlen = -1; /* last emitted length */
   let curlen; /* length of current code */
 
-  let nextlen = tree[0 * 2 + 1] /*.Len*/; /* length of next code */
+  let nextlen = tree[1]; /*.Len*/ /* length of next code */
 
   let count = 0; /* repeat count of the current code */
   let max_count = 7; /* max repeat count */
@@ -848,7 +820,7 @@ const send_tree = (s, tree, max_code) => {
   let prevlen = -1; /* last emitted length */
   let curlen; /* length of current code */
 
-  let nextlen = tree[0 * 2 + 1] /*.Len*/; /* length of next code */
+  let nextlen = tree[1]; /*.Len*/ /* length of next code */
 
   let count = 0; /* repeat count of the current code */
   let max_count = 7; /* max repeat count */
@@ -1184,8 +1156,4 @@ const _tr_tally = (s, dist, lc) => {
   return s.sym_next === s.sym_end;
 };
 
-module.exports._tr_init = _tr_init;
-module.exports._tr_stored_block = _tr_stored_block;
-module.exports._tr_flush_block = _tr_flush_block;
-module.exports._tr_tally = _tr_tally;
-module.exports._tr_align = _tr_align;
+export { _tr_init, _tr_stored_block, _tr_flush_block, _tr_tally, _tr_align };

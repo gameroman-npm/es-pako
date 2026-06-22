@@ -1,9 +1,7 @@
-"use strict";
-
-const zlib_deflate = require("./zlib/deflate");
-const utils = require("./utils/common");
-const strings = require("./utils/strings");
-const msg = require("./zlib/messages");
+import * as utils from "./utils/common";
+import * as strings from "./utils/strings";
+import * as zlib_deflate from "./zlib/deflate";
+import msg from "./zlib/messages";
 import ZStream from "./zlib/zstream";
 
 const toString = Object.prototype.toString;
@@ -11,17 +9,7 @@ const toString = Object.prototype.toString;
 /* Public constants ==========================================================*/
 /* ===========================================================================*/
 
-const {
-  Z_NO_FLUSH,
-  Z_SYNC_FLUSH,
-  Z_FULL_FLUSH,
-  Z_FINISH,
-  Z_OK,
-  Z_STREAM_END,
-  Z_DEFAULT_COMPRESSION,
-  Z_DEFAULT_STRATEGY,
-  Z_DEFLATED,
-} = require("./zlib/constants");
+import * as c from "./zlib/constants";
 
 /* ===========================================================================*/
 
@@ -96,12 +84,13 @@ const {
  *   - `comment` (String) - comment (binary string)
  *   - `hcrc` (Boolean) - true if header crc should be added
  *
- * ##### Example:
+ * @example
  *
  * ```javascript
- * const pako = require('pako')
- *   , chunk1 = new Uint8Array([1,2,3,4,5,6,7,8,9])
- *   , chunk2 = new Uint8Array([10,11,12,13,14,15,16,17,18,19]);
+ * import * as pako from 'es-pako';
+ *
+ * const chunk1 = new Uint8Array([1,2,3,4,5,6,7,8,9]);
+ * const chunk2 = new Uint8Array([10,11,12,13,14,15,16,17,18,19]);
  *
  * const deflate = new pako.Deflate({ level: 3});
  *
@@ -116,18 +105,18 @@ const {
 function Deflate(options) {
   this.options = utils.assign(
     {
-      level: Z_DEFAULT_COMPRESSION,
-      method: Z_DEFLATED,
+      level: c.Z_DEFAULT_COMPRESSION,
+      method: c.Z_DEFLATED,
       chunkSize: 16384,
       windowBits: 15,
       memLevel: 8,
-      strategy: Z_DEFAULT_STRATEGY,
+      strategy: c.Z_DEFAULT_STRATEGY,
       legacyHash: false,
     },
     options || {},
   );
 
-  let opt = this.options;
+  const opt = this.options;
 
   if (opt.raw && opt.windowBits > 0) {
     opt.windowBits = -opt.windowBits;
@@ -153,7 +142,7 @@ function Deflate(options) {
     opt.legacyHash,
   );
 
-  if (status !== Z_OK) {
+  if (status !== c.Z_OK) {
     throw new Error(msg[status]);
   }
 
@@ -175,7 +164,7 @@ function Deflate(options) {
 
     status = zlib_deflate.deflateSetDictionary(this.strm, dict);
 
-    if (status !== Z_OK) {
+    if (status !== c.Z_OK) {
       throw new Error(msg[status]);
     }
 
@@ -215,7 +204,7 @@ Deflate.prototype.push = function (data, flush_mode) {
   }
 
   if (flush_mode === ~~flush_mode) _flush_mode = flush_mode;
-  else _flush_mode = flush_mode === true ? Z_FINISH : Z_NO_FLUSH;
+  else _flush_mode = flush_mode === true ? c.Z_FINISH : c.Z_NO_FLUSH;
 
   // Convert data if needed
   if (typeof data === "string") {
@@ -239,7 +228,7 @@ Deflate.prototype.push = function (data, flush_mode) {
 
     // Make sure avail_out > 6 to avoid repeating markers
     if (
-      (_flush_mode === Z_SYNC_FLUSH || _flush_mode === Z_FULL_FLUSH) &&
+      (_flush_mode === c.Z_SYNC_FLUSH || _flush_mode === c.Z_FULL_FLUSH) &&
       strm.avail_out <= 6
     ) {
       this.onData(strm.output.subarray(0, strm.next_out));
@@ -250,14 +239,14 @@ Deflate.prototype.push = function (data, flush_mode) {
     status = zlib_deflate.deflate(strm, _flush_mode);
 
     // Ended => flush and finish
-    if (status === Z_STREAM_END) {
+    if (status === c.Z_STREAM_END) {
       if (strm.next_out > 0) {
         this.onData(strm.output.subarray(0, strm.next_out));
       }
       status = zlib_deflate.deflateEnd(this.strm);
       this.onEnd(status);
       this.ended = true;
-      return status === Z_OK;
+      return status === c.Z_OK;
     }
 
     // Flush if out buffer full
@@ -301,7 +290,7 @@ Deflate.prototype.onData = function (chunk) {
  **/
 Deflate.prototype.onEnd = function (status) {
   // On success - join
-  if (status === Z_OK) {
+  if (status === c.Z_OK) {
     this.result = utils.flattenChunks(this.chunks);
   }
   this.chunks = [];
@@ -332,10 +321,11 @@ Deflate.prototype.onEnd = function (status) {
  * - `raw` (Boolean) - say that we work with raw stream, if you don't wish to specify
  *   negative windowBits implicitly.
  *
- * ##### Example:
+ * @example
  *
  * ```javascript
- * const pako = require('pako')
+ * import * as pako from 'es-pako';
+ *
  * const data = new Uint8Array([1,2,3,4,5,6,7,8,9]);
  *
  * console.log(pako.deflate(data));
@@ -382,8 +372,4 @@ function gzip(input, options) {
   return deflate(input, options);
 }
 
-module.exports.Deflate = Deflate;
-module.exports.deflate = deflate;
-module.exports.deflateRaw = deflateRaw;
-module.exports.gzip = gzip;
-module.exports.constants = require("./zlib/constants");
+export { Deflate, deflate, deflateRaw, gzip };

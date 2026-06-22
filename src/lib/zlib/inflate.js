@@ -1,28 +1,7 @@
-"use strict";
-
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
-
-const adler32 = require("./adler32");
-const crc32 = require("./crc32");
-const inflate_fast = require("./inffast");
-import inflate_table from "./inftrees";
+import adler32 from "./adler32.js";
+import crc32 from "./crc32.js";
+import inflate_fast from "./inffast.js";
+import inflate_table from "./inftrees.js";
 
 const CODES = 0;
 const LENS = 1;
@@ -31,19 +10,7 @@ const DISTS = 2;
 /* Public constants ==========================================================*/
 /* ===========================================================================*/
 
-const {
-  Z_FINISH,
-  Z_BLOCK,
-  Z_TREES,
-  Z_OK,
-  Z_STREAM_END,
-  Z_NEED_DICT,
-  Z_STREAM_ERROR,
-  Z_DATA_ERROR,
-  Z_MEM_ERROR,
-  Z_BUF_ERROR,
-  Z_DEFLATED,
-} = require("./constants");
+import * as c from "./constants.ts";
 
 /* STATES ====================================================================*/
 /* ===========================================================================*/
@@ -174,11 +141,11 @@ const inflateStateCheck = (strm) => {
 
 const inflateResetKeep = (strm) => {
   if (inflateStateCheck(strm)) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
   const state = strm.state;
   strm.total_in = strm.total_out = state.total = 0;
-  strm.msg = ""; /*Z_NULL*/
+  strm.msg = ""; /*c.Z_NULL*/
   if (state.wrap) {
     /* to support ill-conceived Java test suite */
     strm.adler = state.wrap & 1;
@@ -188,7 +155,7 @@ const inflateResetKeep = (strm) => {
   state.havedict = 0;
   state.flags = -1;
   state.dmax = 32768;
-  state.head = null /*Z_NULL*/;
+  state.head = null /*c.Z_NULL*/;
   state.hold = 0;
   state.bits = 0;
   //state.lencode = state.distcode = state.next = state.codes;
@@ -198,12 +165,12 @@ const inflateResetKeep = (strm) => {
   state.sane = 1;
   state.back = -1;
   //Tracev((stderr, "inflate: reset\n"));
-  return Z_OK;
+  return c.Z_OK;
 };
 
 const inflateReset = (strm) => {
   if (inflateStateCheck(strm)) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
   const state = strm.state;
   state.wsize = 0;
@@ -217,7 +184,7 @@ const inflateReset2 = (strm, windowBits) => {
 
   /* get the state */
   if (inflateStateCheck(strm)) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
   const state = strm.state;
 
@@ -234,7 +201,7 @@ const inflateReset2 = (strm, windowBits) => {
 
   /* set number of window bits, free window if different */
   if (windowBits && (windowBits < 8 || windowBits > 15)) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
   if (state.window !== null && state.wbits !== windowBits) {
     state.window = null;
@@ -248,21 +215,21 @@ const inflateReset2 = (strm, windowBits) => {
 
 const inflateInit2 = (strm, windowBits) => {
   if (!strm) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
-  //strm.msg = Z_NULL;                 /* in case we return an error */
+  //strm.msg = c.Z_NULL;                 /* in case we return an error */
 
   const state = new InflateState();
 
-  //if (state === Z_NULL) return Z_MEM_ERROR;
+  //if (state === c.Z_NULL) return c.Z_MEM_ERROR;
   //Tracev((stderr, "inflate: allocated\n"));
   strm.state = state;
   state.strm = strm;
-  state.window = null /*Z_NULL*/;
+  state.window = null /*c.Z_NULL*/;
   state.mode = HEAD; /* to pass state test in inflateReset2() */
   const ret = inflateReset2(strm, windowBits);
-  if (ret !== Z_OK) {
-    strm.state = null /*Z_NULL*/;
+  if (ret !== c.Z_OK) {
+    strm.state = null /*c.Z_NULL*/;
   }
   return ret;
 };
@@ -423,7 +390,7 @@ const inflate = (strm, flush) => {
     !strm.output ||
     (!strm.input && strm.avail_in !== 0)
   ) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
 
   state = strm.state;
@@ -444,7 +411,7 @@ const inflate = (strm, flush) => {
 
   _in = have;
   _out = left;
-  ret = Z_OK;
+  ret = c.Z_OK;
 
   // goto emulation
   inf_leave: for (;;) {
@@ -469,7 +436,7 @@ const inflate = (strm, flush) => {
           if (state.wbits === 0) {
             state.wbits = 15;
           }
-          state.check = 0 /*crc32(0L, Z_NULL, 0)*/;
+          state.check = 0 /*crc32(0L, c.Z_NULL, 0)*/;
           //=== CRC2(state.check, hold);
           hbuf[0] = hold & 0xff;
           hbuf[1] = (hold >>> 8) & 0xff;
@@ -494,7 +461,7 @@ const inflate = (strm, flush) => {
           state.mode = BAD;
           break;
         }
-        if ((hold & 0x0f) /*BITS(4)*/ !== Z_DEFLATED) {
+        if ((hold & 0x0f) /*BITS(4)*/ !== c.Z_DEFLATED) {
           strm.msg = "unknown compression method";
           state.mode = BAD;
           break;
@@ -520,7 +487,7 @@ const inflate = (strm, flush) => {
 
         state.flags = 0; /* indicate zlib header */
         //Tracev((stderr, "inflate:   zlib header ok\n"));
-        strm.adler = state.check = 1 /*adler32(0L, Z_NULL, 0)*/;
+        strm.adler = state.check = 1 /*adler32(0L, c.Z_NULL, 0)*/;
         state.mode = hold & 0x200 ? DICTID : TYPE;
         //=== INITBITS();
         hold = 0;
@@ -539,7 +506,7 @@ const inflate = (strm, flush) => {
         }
         //===//
         state.flags = hold;
-        if ((state.flags & 0xff) !== Z_DEFLATED) {
+        if ((state.flags & 0xff) !== c.Z_DEFLATED) {
           strm.msg = "unknown compression method";
           state.mode = BAD;
           break;
@@ -650,7 +617,7 @@ const inflate = (strm, flush) => {
           bits = 0;
           //===//
         } else if (state.head) {
-          state.head.extra = null /*Z_NULL*/;
+          state.head.extra = null /*c.Z_NULL*/;
         }
         state.mode = EXTRA;
       /* falls through */
@@ -815,13 +782,13 @@ const inflate = (strm, flush) => {
           state.hold = hold;
           state.bits = bits;
           //---
-          return Z_NEED_DICT;
+          return c.Z_NEED_DICT;
         }
-        strm.adler = state.check = 1 /*adler32(0L, Z_NULL, 0)*/;
+        strm.adler = state.check = 1 /*adler32(0L, c.Z_NULL, 0)*/;
         state.mode = TYPE;
       /* falls through */
       case TYPE:
-        if (flush === Z_BLOCK || flush === Z_TREES) {
+        if (flush === c.Z_BLOCK || flush === c.Z_TREES) {
           break inf_leave;
         }
       /* falls through */
@@ -861,7 +828,7 @@ const inflate = (strm, flush) => {
             //Tracev((stderr, "inflate:     fixed codes block%s\n",
             //        state.last ? " (last)" : ""));
             state.mode = LEN_; /* decode codes */
-            if (flush === Z_TREES) {
+            if (flush === c.Z_TREES) {
               //--- DROPBITS(2) ---//
               hold >>>= 2;
               bits -= 2;
@@ -911,7 +878,7 @@ const inflate = (strm, flush) => {
         bits = 0;
         //===//
         state.mode = COPY_;
-        if (flush === Z_TREES) {
+        if (flush === c.Z_TREES) {
           break inf_leave;
         }
       /* falls through */
@@ -1209,7 +1176,7 @@ const inflate = (strm, flush) => {
         }
         //Tracev((stderr, 'inflate:       codes ok\n'));
         state.mode = LEN_;
-        if (flush === Z_TREES) {
+        if (flush === c.Z_TREES) {
           break inf_leave;
         }
       /* falls through */
@@ -1585,17 +1552,17 @@ const inflate = (strm, flush) => {
         state.mode = DONE;
       /* falls through */
       case DONE:
-        ret = Z_STREAM_END;
+        ret = c.Z_STREAM_END;
         break inf_leave;
       case BAD:
-        ret = Z_DATA_ERROR;
+        ret = c.Z_DATA_ERROR;
         break inf_leave;
       case MEM:
-        return Z_MEM_ERROR;
+        return c.Z_MEM_ERROR;
       case SYNC:
       /* falls through */
       default:
-        return Z_STREAM_ERROR;
+        return c.Z_STREAM_ERROR;
     }
   }
 
@@ -1621,11 +1588,11 @@ const inflate = (strm, flush) => {
     state.wsize ||
     (_out !== strm.avail_out &&
       state.mode < BAD &&
-      (state.mode < CHECK || flush !== Z_FINISH))
+      (state.mode < CHECK || flush !== c.Z_FINISH))
   ) {
     if (updatewindow(strm, strm.output, strm.next_out, _out - strm.avail_out)) {
       state.mode = MEM;
-      return Z_MEM_ERROR;
+      return c.Z_MEM_ERROR;
     }
   }
   _in -= strm.avail_in;
@@ -1645,39 +1612,39 @@ const inflate = (strm, flush) => {
     (state.last ? 64 : 0) +
     (state.mode === TYPE ? 128 : 0) +
     (state.mode === LEN_ || state.mode === COPY_ ? 256 : 0);
-  if (((_in === 0 && _out === 0) || flush === Z_FINISH) && ret === Z_OK) {
-    ret = Z_BUF_ERROR;
+  if (((_in === 0 && _out === 0) || flush === c.Z_FINISH) && ret === c.Z_OK) {
+    ret = c.Z_BUF_ERROR;
   }
   return ret;
 };
 
 const inflateEnd = (strm) => {
   if (inflateStateCheck(strm)) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
 
-  let state = strm.state;
+  const state = strm.state;
   if (state.window) {
     state.window = null;
   }
   strm.state = null;
-  return Z_OK;
+  return c.Z_OK;
 };
 
 const inflateGetHeader = (strm, head) => {
   /* check state */
   if (inflateStateCheck(strm)) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
   const state = strm.state;
   if ((state.wrap & 2) === 0) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
 
   /* save header structure */
   state.head = head;
   head.done = false;
-  return Z_OK;
+  return c.Z_OK;
 };
 
 const inflateSetDictionary = (strm, dictionary) => {
@@ -1689,12 +1656,12 @@ const inflateSetDictionary = (strm, dictionary) => {
 
   /* check state */
   if (inflateStateCheck(strm)) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
   state = strm.state;
 
   if (state.wrap !== 0 && state.mode !== DICT) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
 
   /* check for correct dictionary identifier */
@@ -1703,7 +1670,7 @@ const inflateSetDictionary = (strm, dictionary) => {
     /* dictid = adler32(dictid, dictionary, dictLength); */
     dictid = adler32(dictid, dictionary, dictLength, 0);
     if (dictid !== state.check) {
-      return Z_DATA_ERROR;
+      return c.Z_DATA_ERROR;
     }
   }
   /* copy dictionary to window using updatewindow(), which will amend the
@@ -1711,11 +1678,11 @@ const inflateSetDictionary = (strm, dictionary) => {
   ret = updatewindow(strm, dictionary, dictLength, dictLength);
   if (ret) {
     state.mode = MEM;
-    return Z_MEM_ERROR;
+    return c.Z_MEM_ERROR;
   }
   state.havedict = 1;
   // Tracev((stderr, "inflate:   dictionary set\n"));
-  return Z_OK;
+  return c.Z_OK;
 };
 
 const inflateInfo = "pako inflate (from Nodeca project)";

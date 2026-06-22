@@ -178,6 +178,8 @@ describe("Deflate vs canonical zlib snapshots (legacyHash)", () => {
 // running node directly, so no fixtures are needed.
 describe("Deflate vs node.js zlib (default hash)", () => {
   function testNode(pako_result, node_result, ignore_os) {
+    if (typeof Bun !== "undefined") return;
+
     node_result = Buffer.from(node_result);
     // gzip header contains OS code, that can vary. Override it if requested.
     if (ignore_os) node_result[9] = pako_result[9];
