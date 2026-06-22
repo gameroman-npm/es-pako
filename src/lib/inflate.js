@@ -1,27 +1,16 @@
-"use strict";
-
-const zlib_inflate = require("./zlib/inflate");
-const utils = require("./utils/common");
-const strings = require("./utils/strings");
-const msg = require("./zlib/messages");
+import * as utils from "./utils/common";
+import * as strings from "./utils/strings";
+import GZheader from "./zlib/gzheader";
+import * as zlib_inflate from "./zlib/inflate";
+import msg from "./zlib/messages";
 import ZStream from "./zlib/zstream";
-const GZheader = require("./zlib/gzheader");
 
 const toString = Object.prototype.toString;
 
 /* Public constants ==========================================================*/
 /* ===========================================================================*/
 
-const {
-  Z_NO_FLUSH,
-  Z_FINISH,
-  Z_OK,
-  Z_STREAM_END,
-  Z_NEED_DICT,
-  Z_STREAM_ERROR,
-  Z_DATA_ERROR,
-  Z_MEM_ERROR,
-} = require("./zlib/constants");
+import * as c from "./zlib/constants";
 
 /* ===========================================================================*/
 
@@ -84,11 +73,12 @@ const {
  * By default, when no options set, autodetect deflate/gzip data format via
  * wrapper header.
  *
- * ##### Example:
+ * @example
  *
  * ```javascript
- * const pako = require('pako')
- * const chunk1 = new Uint8Array([1,2,3,4,5,6,7,8,9])
+ * import * as pako from 'es-pako';
+ *
+ * const chunk1 = new Uint8Array([1,2,3,4,5,6,7,8,9]);
  * const chunk2 = new Uint8Array([10,11,12,13,14,15,16,17,18,19]);
  *
  * const inflate = new pako.Inflate({ level: 3});
@@ -151,7 +141,7 @@ function Inflate(options) {
 
   let status = zlib_inflate.inflateInit2(this.strm, opt.windowBits);
 
-  if (status !== Z_OK) {
+  if (status !== c.Z_OK) {
     throw new Error(msg[status]);
   }
 
@@ -170,7 +160,7 @@ function Inflate(options) {
     if (opt.raw) {
       //In raw mode we need to set the dictionary early
       status = zlib_inflate.inflateSetDictionary(this.strm, opt.dictionary);
-      if (status !== Z_OK) {
+      if (status !== c.Z_OK) {
         throw new Error(msg[status]);
       }
     }
@@ -211,7 +201,7 @@ Inflate.prototype.push = function (data, flush_mode) {
   if (this.ended) return false;
 
   if (flush_mode === ~~flush_mode) _flush_mode = flush_mode;
-  else _flush_mode = flush_mode === true ? Z_FINISH : Z_NO_FLUSH;
+  else _flush_mode = flush_mode === true ? c.Z_FINISH : c.Z_NO_FLUSH;
 
   // Convert data if needed
   if (toString.call(data) === "[object ArrayBuffer]") {
@@ -232,21 +222,21 @@ Inflate.prototype.push = function (data, flush_mode) {
 
     status = zlib_inflate.inflate(strm, _flush_mode);
 
-    if (status === Z_NEED_DICT && dictionary) {
+    if (status === c.Z_NEED_DICT && dictionary) {
       status = zlib_inflate.inflateSetDictionary(strm, dictionary);
 
-      if (status === Z_OK) {
+      if (status === c.Z_OK) {
         status = zlib_inflate.inflate(strm, _flush_mode);
-      } else if (status === Z_DATA_ERROR) {
+      } else if (status === c.Z_DATA_ERROR) {
         // Replace code with more verbose
-        status = Z_NEED_DICT;
+        status = c.Z_NEED_DICT;
       }
     }
 
     // Skip snyc markers if more data follows and not raw mode
     while (
       strm.avail_in > 0 &&
-      status === Z_STREAM_END &&
+      status === c.Z_STREAM_END &&
       strm.state.wrap > 0 &&
       data[strm.next_in] !== 0
     ) {
@@ -255,10 +245,10 @@ Inflate.prototype.push = function (data, flush_mode) {
     }
 
     switch (status) {
-      case Z_STREAM_ERROR:
-      case Z_DATA_ERROR:
-      case Z_NEED_DICT:
-      case Z_MEM_ERROR:
+      case c.Z_STREAM_ERROR:
+      case c.Z_DATA_ERROR:
+      case c.Z_NEED_DICT:
+      case c.Z_MEM_ERROR:
         this.onEnd(status);
         this.ended = true;
         return false;
@@ -270,13 +260,17 @@ Inflate.prototype.push = function (data, flush_mode) {
 
     if (strm.next_out) {
       // Flush output if buffer is full, stream ended, or an explicit flush was
-      // requested (e.g. Z_SYNC_FLUSH) - to push out the tail, same as node's zlib.
-      if (strm.avail_out === 0 || status === Z_STREAM_END || _flush_mode > 0) {
+      // requested (e.g. c.Z_SYNC_FLUSH) - to push out the tail, same as node's zlib.
+      if (
+        strm.avail_out === 0 ||
+        status === c.Z_STREAM_END ||
+        _flush_mode > 0
+      ) {
         if (this.options.to === "string") {
-          let next_out_utf8 = strings.utf8border(strm.output, strm.next_out);
+          const next_out_utf8 = strings.utf8border(strm.output, strm.next_out);
 
-          let tail = strm.next_out - next_out_utf8;
-          let utf8str = strings.buf2string(strm.output, next_out_utf8);
+          const tail = strm.next_out - next_out_utf8;
+          const utf8str = strings.buf2string(strm.output, next_out_utf8);
 
           // move tail & realign counters
           strm.next_out = tail;
@@ -304,10 +298,10 @@ Inflate.prototype.push = function (data, flush_mode) {
     }
 
     // Must repeat iteration if out buffer is full
-    if (status === Z_OK && last_avail_out === 0) continue;
+    if (status === c.Z_OK && last_avail_out === 0) continue;
 
     // Finalize if end of stream reached.
-    if (status === Z_STREAM_END) {
+    if (status === c.Z_STREAM_END) {
       status = zlib_inflate.inflateEnd(this.strm);
       this.onEnd(status);
       this.ended = true;
@@ -343,7 +337,7 @@ Inflate.prototype.onData = function (chunk) {
  **/
 Inflate.prototype.onEnd = function (status) {
   // On success - join
-  if (status === Z_OK) {
+  if (status === c.Z_OK) {
     if (this.options.to === "string") {
       this.result = this.chunks.join("");
     } else {
@@ -380,10 +374,11 @@ Inflate.prototype.onEnd = function (status) {
  *   chunk length can differ from `chunkSize`, depending on content.
  *
  *
- * ##### Example:
+ * @example
  *
  * ```javascript
- * const pako = require('pako');
+ * import * as pako from 'es-pako';
+ *
  * const input = pako.deflate(new Uint8Array([1,2,3,4,5,6,7,8,9]));
  * let output;
  *
@@ -419,17 +414,4 @@ function inflateRaw(input, options) {
   return inflate(input, options);
 }
 
-/**
- * ungzip(data[, options]) -> Uint8Array|String
- * - data (Uint8Array|ArrayBuffer): input data to decompress.
- * - options (Object): zlib inflate options.
- *
- * Just shortcut to [[inflate]], because it autodetects format
- * by header.content. Done for convenience.
- **/
-
-module.exports.Inflate = Inflate;
-module.exports.inflate = inflate;
-module.exports.inflateRaw = inflateRaw;
-module.exports.ungzip = inflate;
-module.exports.constants = require("./zlib/constants");
+export { Inflate, inflate, inflateRaw, inflate as ungzip };

@@ -6,9 +6,9 @@ import { fileURLToPath } from "node:url";
 
 import * as pako from "es-pako";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import * as strings from "../src/lib/utils/strings.js";
 
-const strings = pako.strings;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function fixedFromCharCode(code) {
   if (code > 0xffff) {

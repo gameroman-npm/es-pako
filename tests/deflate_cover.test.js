@@ -7,12 +7,13 @@ import { fileURLToPath } from "node:url";
 
 import * as pako from "es-pako";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import zlib_deflate from "../src/lib/zlib/deflate.js";
+import msg from "../src/lib/zlib/messages";
+import ZStream from "../src/lib/zlib/zstream.js";
 
 const c = pako.constants;
-const msg = pako.msg;
-const zlib_deflate = pako.deflate;
-import ZStream from "../src/lib/zlib/zstream.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const short_sample = "hello world";
 const long_sample = fs.readFileSync(

@@ -1,58 +1,16 @@
-"use strict";
-
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
-
-const {
+import adler32 from "./adler32";
+import * as c from "./constants";
+import crc32 from "./crc32";
+import msg from "./messages";
+/* Public constants ==========================================================*/
+/* ===========================================================================*/
+import {
   _tr_init,
   _tr_stored_block,
   _tr_flush_block,
   _tr_tally,
   _tr_align,
-} = require("./trees");
-const adler32 = require("./adler32");
-const crc32 = require("./crc32");
-const msg = require("./messages");
-
-/* Public constants ==========================================================*/
-/* ===========================================================================*/
-
-const {
-  Z_NO_FLUSH,
-  Z_PARTIAL_FLUSH,
-  Z_FULL_FLUSH,
-  Z_FINISH,
-  Z_BLOCK,
-  Z_OK,
-  Z_STREAM_END,
-  Z_STREAM_ERROR,
-  Z_DATA_ERROR,
-  Z_BUF_ERROR,
-  Z_DEFAULT_COMPRESSION,
-  Z_FILTERED,
-  Z_HUFFMAN_ONLY,
-  Z_RLE,
-  Z_FIXED,
-  Z_DEFAULT_STRATEGY,
-  Z_UNKNOWN,
-  Z_DEFLATED,
-} = require("./constants");
+} from "./trees";
 
 /*============================================================================*/
 
@@ -125,7 +83,7 @@ const zero = (buf) => {
 const slide_hash = (s) => {
   let n, m;
   let p;
-  let wsize = s.w_size;
+  const wsize = s.w_size;
 
   n = s.hash_size;
   p = n;
@@ -147,7 +105,7 @@ const slide_hash = (s) => {
 };
 
 /* eslint-disable new-cap */
-let HASH = (s, prev, data) => ((prev << s.hash_shift) ^ data) & s.hash_mask;
+const HASH = (s, prev, data) => ((prev << s.hash_shift) ^ data) & s.hash_mask;
 
 /* ===========================================================================
  * Insert string str in the dictionary and set match_head to the previous head
@@ -288,7 +246,7 @@ const longest_match = (s, cur_match) => {
   const limit =
     s.strstart > s.w_size - MIN_LOOKAHEAD
       ? s.strstart - (s.w_size - MIN_LOOKAHEAD)
-      : 0 /*NIL*/;
+      : 0; /*NIL*/
 
   const _win = s.window; // shortcut
 
@@ -597,8 +555,8 @@ const deflate_stored = (s, flush) => {
      */
     if (
       len < min_block &&
-      ((len === 0 && flush !== Z_FINISH) ||
-        flush === Z_NO_FLUSH ||
+      ((len === 0 && flush !== c.Z_FINISH) ||
+        flush === c.Z_NO_FLUSH ||
         len !== left + s.strm.avail_in)
     ) {
       break;
@@ -607,7 +565,7 @@ const deflate_stored = (s, flush) => {
     /* Make a dummy stored block in pending to get the header bytes,
      * including any pending bits. This also updates the debugging counts.
      */
-    last = flush === Z_FINISH && len === left + s.strm.avail_in ? 1 : 0;
+    last = flush === c.Z_FINISH && len === left + s.strm.avail_in ? 1 : 0;
     _tr_stored_block(s, 0, 0, last);
 
     /* Replace the lengths in the dummy stored block with len. */
@@ -708,8 +666,8 @@ const deflate_stored = (s, flush) => {
 
   /* If flushing and all input has been consumed, then done. */
   if (
-    flush !== Z_NO_FLUSH &&
-    flush !== Z_FINISH &&
+    flush !== c.Z_NO_FLUSH &&
+    flush !== c.Z_FINISH &&
     s.strm.avail_in === 0 &&
     s.strstart === s.block_start
   ) {
@@ -759,13 +717,14 @@ const deflate_stored = (s, flush) => {
   left = s.strstart - s.block_start;
   if (
     left >= min_block ||
-    ((left || flush === Z_FINISH) &&
-      flush !== Z_NO_FLUSH &&
+    ((left || flush === c.Z_FINISH) &&
+      flush !== c.Z_NO_FLUSH &&
       s.strm.avail_in === 0 &&
       left <= have)
   ) {
     len = left > have ? have : left;
-    last = flush === Z_FINISH && s.strm.avail_in === 0 && len === left ? 1 : 0;
+    last =
+      flush === c.Z_FINISH && s.strm.avail_in === 0 && len === left ? 1 : 0;
     _tr_stored_block(s, s.block_start, len, last);
     s.block_start += len;
     flush_pending(s.strm);
@@ -794,7 +753,7 @@ const deflate_fast = (s, flush) => {
      */
     if (s.lookahead < MIN_LOOKAHEAD) {
       fill_window(s);
-      if (s.lookahead < MIN_LOOKAHEAD && flush === Z_NO_FLUSH) {
+      if (s.lookahead < MIN_LOOKAHEAD && flush === c.Z_NO_FLUSH) {
         return BS_NEED_MORE;
       }
       if (s.lookahead === 0) {
@@ -888,7 +847,7 @@ const deflate_fast = (s, flush) => {
     }
   }
   s.insert = s.strstart < MIN_MATCH - 1 ? s.strstart : MIN_MATCH - 1;
-  if (flush === Z_FINISH) {
+  if (flush === c.Z_FINISH) {
     /*** FLUSH_BLOCK(s, 1); ***/
     flush_block_only(s, true);
     if (s.strm.avail_out === 0) {
@@ -928,7 +887,7 @@ const deflate_slow = (s, flush) => {
      */
     if (s.lookahead < MIN_LOOKAHEAD) {
       fill_window(s);
-      if (s.lookahead < MIN_LOOKAHEAD && flush === Z_NO_FLUSH) {
+      if (s.lookahead < MIN_LOOKAHEAD && flush === c.Z_NO_FLUSH) {
         return BS_NEED_MORE;
       }
       if (s.lookahead === 0) {
@@ -964,7 +923,7 @@ const deflate_slow = (s, flush) => {
 
       if (
         s.match_length <= 5 &&
-        (s.strategy === Z_FILTERED ||
+        (s.strategy === c.Z_FILTERED ||
           (s.match_length === MIN_MATCH &&
             s.strstart - s.match_start > 4096)) /*TOO_FAR*/
       ) {
@@ -1042,7 +1001,7 @@ const deflate_slow = (s, flush) => {
       s.lookahead--;
     }
   }
-  //Assert (flush != Z_NO_FLUSH, "no flush?");
+  //Assert (flush != c.Z_NO_FLUSH, "no flush?");
   if (s.match_available) {
     //Tracevv((stderr,"%c", s->window[s->strstart-1]));
     /*** _tr_tally_lit(s, s.window[s.strstart-1], bflush); ***/
@@ -1051,7 +1010,7 @@ const deflate_slow = (s, flush) => {
     s.match_available = 0;
   }
   s.insert = s.strstart < MIN_MATCH - 1 ? s.strstart : MIN_MATCH - 1;
-  if (flush === Z_FINISH) {
+  if (flush === c.Z_FINISH) {
     /*** FLUSH_BLOCK(s, 1); ***/
     flush_block_only(s, true);
     if (s.strm.avail_out === 0) {
@@ -1073,9 +1032,9 @@ const deflate_slow = (s, flush) => {
 };
 
 /* ===========================================================================
- * For Z_RLE, simply look for runs of bytes, generate matches only of distance
+ * For c.Z_RLE, simply look for runs of bytes, generate matches only of distance
  * one.  Do not maintain a hash table.  (It will be regenerated if this run of
- * deflate switches away from Z_RLE.)
+ * deflate switches away from c.Z_RLE.)
  */
 const deflate_rle = (s, flush) => {
   let bflush; /* set if current block must be flushed */
@@ -1091,7 +1050,7 @@ const deflate_rle = (s, flush) => {
      */
     if (s.lookahead <= MAX_MATCH) {
       fill_window(s);
-      if (s.lookahead <= MAX_MATCH && flush === Z_NO_FLUSH) {
+      if (s.lookahead <= MAX_MATCH && flush === c.Z_NO_FLUSH) {
         return BS_NEED_MORE;
       }
       if (s.lookahead === 0) {
@@ -1160,7 +1119,7 @@ const deflate_rle = (s, flush) => {
     }
   }
   s.insert = 0;
-  if (flush === Z_FINISH) {
+  if (flush === c.Z_FINISH) {
     /*** FLUSH_BLOCK(s, 1); ***/
     flush_block_only(s, true);
     if (s.strm.avail_out === 0) {
@@ -1181,7 +1140,7 @@ const deflate_rle = (s, flush) => {
 };
 
 /* ===========================================================================
- * For Z_HUFFMAN_ONLY, do not look for matches.  Do not maintain a hash table.
+ * For c.Z_HUFFMAN_ONLY, do not look for matches.  Do not maintain a hash table.
  * (It will be regenerated if this run of deflate switches away from Huffman.)
  */
 const deflate_huff = (s, flush) => {
@@ -1192,7 +1151,7 @@ const deflate_huff = (s, flush) => {
     if (s.lookahead === 0) {
       fill_window(s);
       if (s.lookahead === 0) {
-        if (flush === Z_NO_FLUSH) {
+        if (flush === c.Z_NO_FLUSH) {
           return BS_NEED_MORE;
         }
         break; /* flush the current block */
@@ -1216,7 +1175,7 @@ const deflate_huff = (s, flush) => {
     }
   }
   s.insert = 0;
-  if (flush === Z_FINISH) {
+  if (flush === c.Z_FINISH) {
     /*** FLUSH_BLOCK(s, 1); ***/
     flush_block_only(s, true);
     if (s.strm.avail_out === 0) {
@@ -1299,7 +1258,7 @@ function DeflateState() {
   this.wrap = 0; /* bit 0 true for zlib, bit 1 true for gzip */
   this.gzhead = null; /* gzip header information to write */
   this.gzindex = 0; /* where in extra, name, or comment */
-  this.method = Z_DEFLATED; /* can only be DEFLATED */
+  this.method = c.Z_DEFLATED; /* can only be DEFLATED */
   this.last_flush = -1; /* value of flush param for previous deflate call */
 
   this.w_size = 0; /* LZ77 window size (32K by default) */
@@ -1503,11 +1462,11 @@ const deflateStateCheck = (strm) => {
 
 const deflateResetKeep = (strm) => {
   if (deflateStateCheck(strm)) {
-    return err(strm, Z_STREAM_ERROR);
+    return err(strm, c.Z_STREAM_ERROR);
   }
 
   strm.total_in = strm.total_out = 0;
-  strm.data_type = Z_UNKNOWN;
+  strm.data_type = c.Z_UNKNOWN;
 
   const s = strm.state;
   s.pending = 0;
@@ -1515,7 +1474,7 @@ const deflateResetKeep = (strm) => {
 
   if (s.wrap < 0) {
     s.wrap = -s.wrap;
-    /* was made negative by deflate(..., Z_FINISH); */
+    /* was made negative by deflate(..., c.Z_FINISH); */
   }
   s.status =
     //#ifdef GZIP
@@ -1527,16 +1486,16 @@ const deflateResetKeep = (strm) => {
         : BUSY_STATE;
   strm.adler =
     s.wrap === 2
-      ? 0 // crc32(0, Z_NULL, 0)
-      : 1; // adler32(0, Z_NULL, 0)
+      ? 0 // crc32(0, c.Z_NULL, 0)
+      : 1; // adler32(0, c.Z_NULL, 0)
   s.last_flush = -2;
   _tr_init(s);
-  return Z_OK;
+  return c.Z_OK;
 };
 
 const deflateReset = (strm) => {
   const ret = deflateResetKeep(strm);
-  if (ret === Z_OK) {
+  if (ret === c.Z_OK) {
     lm_init(strm.state);
   }
   return ret;
@@ -1544,10 +1503,10 @@ const deflateReset = (strm) => {
 
 const deflateSetHeader = (strm, head) => {
   if (deflateStateCheck(strm) || strm.state.wrap !== 2) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
   strm.state.gzhead = head;
-  return Z_OK;
+  return c.Z_OK;
 };
 
 const deflateInit2 = (
@@ -1560,12 +1519,12 @@ const deflateInit2 = (
   legacyHash,
 ) => {
   if (!strm) {
-    // === Z_NULL
-    return Z_STREAM_ERROR;
+    // === c.Z_NULL
+    return c.Z_STREAM_ERROR;
   }
   let wrap = 1;
 
-  if (level === Z_DEFAULT_COMPRESSION) {
+  if (level === c.Z_DEFAULT_COMPRESSION) {
     level = 6;
   }
 
@@ -1581,16 +1540,16 @@ const deflateInit2 = (
   if (
     memLevel < 1 ||
     memLevel > MAX_MEM_LEVEL ||
-    method !== Z_DEFLATED ||
+    method !== c.Z_DEFLATED ||
     windowBits < 8 ||
     windowBits > 15 ||
     level < 0 ||
     level > 9 ||
     strategy < 0 ||
-    strategy > Z_FIXED ||
+    strategy > c.Z_FIXED ||
     (windowBits === 8 && wrap !== 1)
   ) {
-    return err(strm, Z_STREAM_ERROR);
+    return err(strm, c.Z_STREAM_ERROR);
   }
 
   if (windowBits === 8) {
@@ -1658,7 +1617,7 @@ const deflateInit2 = (
    * be overwritten by the compressed data. That space is actually 139 bits,
    * due to the three-bit fixed-code block header.
    *
-   * That covers the case where either Z_FIXED is specified, forcing fixed
+   * That covers the case where either c.Z_FIXED is specified, forcing fixed
    * codes, or when the use of fixed codes is chosen, because that choice
    * results in a smaller compressed block than dynamic codes. That latter
    * condition then assures that the above analysis also covers all dynamic
@@ -1694,17 +1653,17 @@ const deflateInit = (strm, level) => {
   return deflateInit2(
     strm,
     level,
-    Z_DEFLATED,
+    c.Z_DEFLATED,
     MAX_WBITS,
     DEF_MEM_LEVEL,
-    Z_DEFAULT_STRATEGY,
+    c.Z_DEFAULT_STRATEGY,
   );
 };
 
 /* ========================================================================= */
 const deflate = (strm, flush) => {
-  if (deflateStateCheck(strm) || flush > Z_BLOCK || flush < 0) {
-    return strm ? err(strm, Z_STREAM_ERROR) : Z_STREAM_ERROR;
+  if (deflateStateCheck(strm) || flush > c.Z_BLOCK || flush < 0) {
+    return strm ? err(strm, c.Z_STREAM_ERROR) : c.Z_STREAM_ERROR;
   }
 
   const s = strm.state;
@@ -1712,9 +1671,9 @@ const deflate = (strm, flush) => {
   if (
     !strm.output ||
     (strm.avail_in !== 0 && !strm.input) ||
-    (s.status === FINISH_STATE && flush !== Z_FINISH)
+    (s.status === FINISH_STATE && flush !== c.Z_FINISH)
   ) {
-    return err(strm, strm.avail_out === 0 ? Z_BUF_ERROR : Z_STREAM_ERROR);
+    return err(strm, strm.avail_out === 0 ? c.Z_BUF_ERROR : c.Z_STREAM_ERROR);
   }
 
   const old_flush = s.last_flush;
@@ -1731,24 +1690,24 @@ const deflate = (strm, flush) => {
        * return OK instead of BUF_ERROR at next call of deflate:
        */
       s.last_flush = -1;
-      return Z_OK;
+      return c.Z_OK;
     }
 
     /* Make sure there is something to do and avoid duplicate consecutive
-     * flushes. For repeated and useless calls with Z_FINISH, we keep
-     * returning Z_STREAM_END instead of Z_BUF_ERROR.
+     * flushes. For repeated and useless calls with c.Z_FINISH, we keep
+     * returning c.Z_STREAM_END instead of c.Z_BUF_ERROR.
      */
   } else if (
     strm.avail_in === 0 &&
     rank(flush) <= rank(old_flush) &&
-    flush !== Z_FINISH
+    flush !== c.Z_FINISH
   ) {
-    return err(strm, Z_BUF_ERROR);
+    return err(strm, c.Z_BUF_ERROR);
   }
 
   /* User must not provide more input after the first FINISH: */
   if (s.status === FINISH_STATE && strm.avail_in !== 0) {
-    return err(strm, Z_BUF_ERROR);
+    return err(strm, c.Z_BUF_ERROR);
   }
 
   /* Write the header */
@@ -1757,10 +1716,10 @@ const deflate = (strm, flush) => {
   }
   if (s.status === INIT_STATE) {
     /* zlib header */
-    let header = (Z_DEFLATED + ((s.w_bits - 8) << 4)) << 8;
+    let header = (c.Z_DEFLATED + ((s.w_bits - 8) << 4)) << 8;
     let level_flags = -1;
 
-    if (s.strategy >= Z_HUFFMAN_ONLY || s.level < 2) {
+    if (s.strategy >= c.Z_HUFFMAN_ONLY || s.level < 2) {
       level_flags = 0;
     } else if (s.level < 6) {
       level_flags = 1;
@@ -1782,25 +1741,25 @@ const deflate = (strm, flush) => {
       putShortMSB(s, strm.adler >>> 16);
       putShortMSB(s, strm.adler & 0xffff);
     }
-    strm.adler = 1; // adler32(0L, Z_NULL, 0);
+    strm.adler = 1; // adler32(0L, c.Z_NULL, 0);
     s.status = BUSY_STATE;
 
     /* Compression must start with an empty pending buffer */
     flush_pending(strm);
     if (s.pending !== 0) {
       s.last_flush = -1;
-      return Z_OK;
+      return c.Z_OK;
     }
   }
   //#ifdef GZIP
   if (s.status === GZIP_STATE) {
     /* gzip header */
-    strm.adler = 0; //crc32(0L, Z_NULL, 0);
+    strm.adler = 0; //crc32(0L, c.Z_NULL, 0);
     put_byte(s, 31);
     put_byte(s, 139);
     put_byte(s, 8);
     if (!s.gzhead) {
-      // s->gzhead == Z_NULL
+      // s->gzhead == c.Z_NULL
       put_byte(s, 0);
       put_byte(s, 0);
       put_byte(s, 0);
@@ -1808,7 +1767,11 @@ const deflate = (strm, flush) => {
       put_byte(s, 0);
       put_byte(
         s,
-        s.level === 9 ? 2 : s.strategy >= Z_HUFFMAN_ONLY || s.level < 2 ? 4 : 0,
+        s.level === 9
+          ? 2
+          : s.strategy >= c.Z_HUFFMAN_ONLY || s.level < 2
+            ? 4
+            : 0,
       );
       put_byte(s, OS_CODE);
       s.status = BUSY_STATE;
@@ -1817,7 +1780,7 @@ const deflate = (strm, flush) => {
       flush_pending(strm);
       if (s.pending !== 0) {
         s.last_flush = -1;
-        return Z_OK;
+        return c.Z_OK;
       }
     } else {
       put_byte(
@@ -1834,7 +1797,11 @@ const deflate = (strm, flush) => {
       put_byte(s, (s.gzhead.time >> 24) & 0xff);
       put_byte(
         s,
-        s.level === 9 ? 2 : s.strategy >= Z_HUFFMAN_ONLY || s.level < 2 ? 4 : 0,
+        s.level === 9
+          ? 2
+          : s.strategy >= c.Z_HUFFMAN_ONLY || s.level < 2
+            ? 4
+            : 0,
       );
       put_byte(s, s.gzhead.os & 0xff);
       if (s.gzhead.extra && s.gzhead.extra.length) {
@@ -1849,11 +1816,11 @@ const deflate = (strm, flush) => {
     }
   }
   if (s.status === EXTRA_STATE) {
-    if (s.gzhead.extra /* != Z_NULL*/) {
+    if (s.gzhead.extra /* != c.Z_NULL*/) {
       let beg = s.pending; /* start of bytes to update crc */
       let left = (s.gzhead.extra.length & 0xffff) - s.gzindex;
       while (s.pending + left > s.pending_buf_size) {
-        let copy = s.pending_buf_size - s.pending;
+        const copy = s.pending_buf_size - s.pending;
         // zmemcpy(s.pending_buf + s.pending,
         //    s.gzhead.extra + s.gzindex, copy);
         s.pending_buf.set(
@@ -1870,14 +1837,14 @@ const deflate = (strm, flush) => {
         flush_pending(strm);
         if (s.pending !== 0) {
           s.last_flush = -1;
-          return Z_OK;
+          return c.Z_OK;
         }
         beg = 0;
         left -= copy;
       }
       // JS specific: s.gzhead.extra may be TypedArray or Array for backward compatibility
       //              TypedArray.slice and TypedArray.from don't exist in IE10-IE11
-      let gzhead_extra = new Uint8Array(s.gzhead.extra);
+      const gzhead_extra = new Uint8Array(s.gzhead.extra);
       // zmemcpy(s->pending_buf + s->pending,
       //     s->gzhead->extra + s->gzindex, left);
       s.pending_buf.set(
@@ -1895,7 +1862,7 @@ const deflate = (strm, flush) => {
     s.status = NAME_STATE;
   }
   if (s.status === NAME_STATE) {
-    if (s.gzhead.name /* != Z_NULL*/) {
+    if (s.gzhead.name /* != c.Z_NULL*/) {
       let beg = s.pending; /* start of bytes to update crc */
       let val;
       do {
@@ -1908,7 +1875,7 @@ const deflate = (strm, flush) => {
           flush_pending(strm);
           if (s.pending !== 0) {
             s.last_flush = -1;
-            return Z_OK;
+            return c.Z_OK;
           }
           beg = 0;
         }
@@ -1930,7 +1897,7 @@ const deflate = (strm, flush) => {
     s.status = COMMENT_STATE;
   }
   if (s.status === COMMENT_STATE) {
-    if (s.gzhead.comment /* != Z_NULL*/) {
+    if (s.gzhead.comment /* != c.Z_NULL*/) {
       let beg = s.pending; /* start of bytes to update crc */
       let val;
       do {
@@ -1943,7 +1910,7 @@ const deflate = (strm, flush) => {
           flush_pending(strm);
           if (s.pending !== 0) {
             s.last_flush = -1;
-            return Z_OK;
+            return c.Z_OK;
           }
           beg = 0;
         }
@@ -1969,12 +1936,12 @@ const deflate = (strm, flush) => {
         flush_pending(strm);
         if (s.pending !== 0) {
           s.last_flush = -1;
-          return Z_OK;
+          return c.Z_OK;
         }
       }
       put_byte(s, strm.adler & 0xff);
       put_byte(s, (strm.adler >> 8) & 0xff);
-      strm.adler = 0; //crc32(0L, Z_NULL, 0);
+      strm.adler = 0; //crc32(0L, c.Z_NULL, 0);
     }
     s.status = BUSY_STATE;
 
@@ -1982,7 +1949,7 @@ const deflate = (strm, flush) => {
     flush_pending(strm);
     if (s.pending !== 0) {
       s.last_flush = -1;
-      return Z_OK;
+      return c.Z_OK;
     }
   }
   //#endif
@@ -1992,14 +1959,14 @@ const deflate = (strm, flush) => {
   if (
     strm.avail_in !== 0 ||
     s.lookahead !== 0 ||
-    (flush !== Z_NO_FLUSH && s.status !== FINISH_STATE)
+    (flush !== c.Z_NO_FLUSH && s.status !== FINISH_STATE)
   ) {
-    let bstate =
+    const bstate =
       s.level === 0
         ? deflate_stored(s, flush)
-        : s.strategy === Z_HUFFMAN_ONLY
+        : s.strategy === c.Z_HUFFMAN_ONLY
           ? deflate_huff(s, flush)
-          : s.strategy === Z_RLE
+          : s.strategy === c.Z_RLE
             ? deflate_rle(s, flush)
             : configuration_table[s.level].func(s, flush);
 
@@ -2011,8 +1978,8 @@ const deflate = (strm, flush) => {
         s.last_flush = -1;
         /* avoid BUF_ERROR next call, see above */
       }
-      return Z_OK;
-      /* If flush != Z_NO_FLUSH && avail_out == 0, the next call
+      return c.Z_OK;
+      /* If flush != c.Z_NO_FLUSH && avail_out == 0, the next call
        * of deflate should use the same flush parameter to make sure
        * that the flush is complete. So we don't have to output an
        * empty block here, this will be done at next call. This also
@@ -2021,16 +1988,16 @@ const deflate = (strm, flush) => {
        */
     }
     if (bstate === BS_BLOCK_DONE) {
-      if (flush === Z_PARTIAL_FLUSH) {
+      if (flush === c.Z_PARTIAL_FLUSH) {
         _tr_align(s);
-      } else if (flush !== Z_BLOCK) {
+      } else if (flush !== c.Z_BLOCK) {
         /* FULL_FLUSH or SYNC_FLUSH */
 
         _tr_stored_block(s, 0, 0, false);
         /* For a full flush, this empty block will be recognized
          * as a special marker by inflate_sync().
          */
-        if (flush === Z_FULL_FLUSH) {
+        if (flush === c.Z_FULL_FLUSH) {
           /*** CLEAR_HASH(s); ***/ /* forget history */
           zero(s.head); // Fill with NIL (= 0);
 
@@ -2044,16 +2011,16 @@ const deflate = (strm, flush) => {
       flush_pending(strm);
       if (strm.avail_out === 0) {
         s.last_flush = -1; /* avoid BUF_ERROR at next call, see above */
-        return Z_OK;
+        return c.Z_OK;
       }
     }
   }
 
-  if (flush !== Z_FINISH) {
-    return Z_OK;
+  if (flush !== c.Z_FINISH) {
+    return c.Z_OK;
   }
   if (s.wrap <= 0) {
-    return Z_STREAM_END;
+    return c.Z_STREAM_END;
   }
 
   /* Write the trailer */
@@ -2079,19 +2046,19 @@ const deflate = (strm, flush) => {
     s.wrap = -s.wrap;
   }
   /* write the trailer only once! */
-  return s.pending !== 0 ? Z_OK : Z_STREAM_END;
+  return s.pending !== 0 ? c.Z_OK : c.Z_STREAM_END;
 };
 
 const deflateEnd = (strm) => {
   if (deflateStateCheck(strm)) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
 
   const status = strm.state.status;
 
   strm.state = null;
 
-  return status === BUSY_STATE ? err(strm, Z_DATA_ERROR) : Z_OK;
+  return status === BUSY_STATE ? err(strm, c.Z_DATA_ERROR) : c.Z_OK;
 };
 
 /* =========================================================================
@@ -2102,14 +2069,14 @@ const deflateSetDictionary = (strm, dictionary) => {
   let dictLength = dictionary.length;
 
   if (deflateStateCheck(strm)) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
 
   const s = strm.state;
   const wrap = s.wrap;
 
   if (wrap === 2 || (wrap === 1 && s.status !== INIT_STATE) || s.lookahead) {
-    return Z_STREAM_ERROR;
+    return c.Z_STREAM_ERROR;
   }
 
   /* when using zlib wrappers, compute Adler-32 for provided dictionary */
@@ -2132,7 +2099,7 @@ const deflateSetDictionary = (strm, dictionary) => {
     }
     /* use the tail */
     // dictionary = dictionary.slice(dictLength - s.w_size);
-    let tmpDict = new Uint8Array(s.w_size);
+    const tmpDict = new Uint8Array(s.w_size);
     tmpDict.set(dictionary.subarray(dictLength - s.w_size, dictLength), 0);
     dictionary = tmpDict;
     dictLength = s.w_size;
@@ -2166,25 +2133,19 @@ const deflateSetDictionary = (strm, dictionary) => {
   strm.input = input;
   strm.avail_in = avail;
   s.wrap = wrap;
-  return Z_OK;
+  return c.Z_OK;
 };
 
-module.exports.deflateInit = deflateInit;
-module.exports.deflateInit2 = deflateInit2;
-module.exports.deflateReset = deflateReset;
-module.exports.deflateResetKeep = deflateResetKeep;
-module.exports.deflateSetHeader = deflateSetHeader;
-module.exports.deflate = deflate;
-module.exports.deflateEnd = deflateEnd;
-module.exports.deflateSetDictionary = deflateSetDictionary;
-module.exports.deflateInfo = "pako deflate (from Nodeca project)";
+const deflateInfo = "pako deflate (from Nodeca project)";
 
-/* Not implemented
-module.exports.deflateBound = deflateBound;
-module.exports.deflateCopy = deflateCopy;
-module.exports.deflateGetDictionary = deflateGetDictionary;
-module.exports.deflateParams = deflateParams;
-module.exports.deflatePending = deflatePending;
-module.exports.deflatePrime = deflatePrime;
-module.exports.deflateTune = deflateTune;
-*/
+export {
+  deflateInit,
+  deflateInit2,
+  deflateReset,
+  deflateResetKeep,
+  deflateSetHeader,
+  deflate,
+  deflateEnd,
+  deflateSetDictionary,
+  deflateInfo,
+};

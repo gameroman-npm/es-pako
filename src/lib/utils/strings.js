@@ -1,6 +1,3 @@
-// String encode/decode helpers
-"use strict";
-
 // Quick check if we can use fast array to bin string conversion
 //
 // - apply(Array) can fail on Android 2.2
@@ -35,7 +32,7 @@ for (let q = 0; q < 256; q++) {
 _utf8len[254] = _utf8len[255] = 1; // Invalid sequence start
 
 // convert string to array (typed, when possible)
-module.exports.string2buf = (str) => {
+export function string2buf(str) {
   if (typeof TextEncoder === "function" && TextEncoder.prototype.encode) {
     return new TextEncoder().encode(str);
   }
@@ -96,7 +93,7 @@ module.exports.string2buf = (str) => {
   }
 
   return buf;
-};
+}
 
 // Helper
 const buf2binstring = (buf, len) => {
@@ -120,7 +117,7 @@ const buf2binstring = (buf, len) => {
 };
 
 // convert array to string
-module.exports.buf2string = (buf, max) => {
+export function buf2string(buf, max) {
   const len = max || buf.length;
 
   if (typeof TextDecoder === "function" && TextDecoder.prototype.decode) {
@@ -174,7 +171,7 @@ module.exports.buf2string = (buf, max) => {
   }
 
   return buf2binstring(utf16buf, out);
-};
+}
 
 // Calculate max possible position in utf8 buffer,
 // that will not break sequence. If that's not possible
@@ -182,7 +179,7 @@ module.exports.buf2string = (buf, max) => {
 //
 // buf[] - utf8 bytes array
 // max   - length limit (mandatory);
-module.exports.utf8border = (buf, max) => {
+export function utf8border(buf, max) {
   max = max || buf.length;
   if (max > buf.length) {
     max = buf.length;
@@ -207,4 +204,4 @@ module.exports.utf8border = (buf, max) => {
   }
 
   return pos + _utf8len[buf[pos]] > max ? pos : max;
-};
+}

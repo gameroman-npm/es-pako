@@ -4,10 +4,11 @@ import { describe, it } from "node:test";
 
 import * as pako from "es-pako";
 
-const c = pako.constants;
-const msg = pako.msg;
 import * as zlib_inflate from "../src/lib/zlib/inflate.js";
 import inflate_table from "../src/lib/zlib/inftrees.js";
+import msg from "../src/lib/zlib/messages.js";
+
+const c = pako.constants;
 
 function h2b(hex) {
   return hex.split(" ").map(function (hx) {

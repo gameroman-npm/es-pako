@@ -18,7 +18,7 @@ function randomBuf(size) {
 function testChunk(buf, expected, packer, chunkSize) {
   let i, _in, count, pos, size, expFlushCount;
 
-  let onData = packer.onData;
+  const onData = packer.onData;
   let flushCount = 0;
 
   packer.onData = function () {
@@ -38,12 +38,12 @@ function testChunk(buf, expected, packer, chunkSize) {
 
   expFlushCount = Math.ceil(packer.result.length / packer.options.chunkSize);
 
-  assert(!packer.err, "Packer error: " + packer.err);
+  assert(!packer.err, `Packer error: ${packer.err}`);
   assert.deepStrictEqual(packer.result, expected);
   assert.strictEqual(
     flushCount,
     expFlushCount,
-    "onData called " + flushCount + "times, expected: " + expFlushCount,
+    `onData called ${flushCount}times, expected: ${expFlushCount}`,
   );
 }
 
@@ -109,12 +109,12 @@ describe("Edge condition", () => {
 
     for (i = 0; i < deflated.length; i++) {
       inflator.push(deflated.subarray(i, i + 1), false);
-      assert.ok(!inflator.err, "Inflate failed with status " + inflator.err);
+      assert.ok(!inflator.err, `Inflate failed with status ${inflator.err}`);
     }
 
     inflator.push(new Uint8Array(0));
 
-    assert.ok(!inflator.err, "Inflate failed with status " + inflator.err);
+    assert.ok(!inflator.err, `Inflate failed with status ${inflator.err}`);
     assert.deepStrictEqual(data, inflator.result);
   });
 });

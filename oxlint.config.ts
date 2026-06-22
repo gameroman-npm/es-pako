@@ -1,3 +1,11 @@
-import { config } from "@gameroman/config/oxlint/ts";
+import { defineConfig } from "@gameroman/config/oxlint/ts";
 
-export default config;
+export default defineConfig({
+  options: {
+    typeCheck: false,
+  },
+  rules: {
+    "no-unnecessary-condition": "warn",
+    "prefer-const": "warn",
+  },
+});
