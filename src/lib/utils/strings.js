@@ -10,7 +10,7 @@ let STR_APPLY_UIA_OK = true;
 
 try {
   String.fromCharCode.apply(null, new Uint8Array(1));
-} catch (__) {
+} catch {
   STR_APPLY_UIA_OK = false;
 }
 

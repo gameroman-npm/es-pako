@@ -4,7 +4,7 @@ const zlib_inflate = require("./zlib/inflate");
 const utils = require("./utils/common");
 const strings = require("./utils/strings");
 const msg = require("./zlib/messages");
-const ZStream = require("./zlib/zstream");
+import ZStream from "./zlib/zstream";
 const GZheader = require("./zlib/gzheader");
 
 const toString = Object.prototype.toString;

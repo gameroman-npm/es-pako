@@ -1,14 +1,11 @@
-'use strict';
+import assert from "node:assert";
+import { describe, it } from "node:test";
 
+import * as pako from "es-pako";
 
-const { describe, it } = require('node:test');
-const assert = require('assert');
-const { loadSamples } = require('./helpers');
-const pako = require('../index');
-
+import { loadSamples } from "./helpers.js";
 
 const samples = loadSamples();
-
 
 function randomBuf(size) {
   const buf = new Uint8Array(size);
@@ -32,53 +29,52 @@ function testChunk(buf, expected, packer, chunkSize) {
   count = Math.ceil(buf.length / chunkSize);
   pos = 0;
   for (i = 0; i < count; i++) {
-    size = (buf.length - pos) < chunkSize ? buf.length - pos : chunkSize;
+    size = buf.length - pos < chunkSize ? buf.length - pos : chunkSize;
     _in = new Uint8Array(size);
     _in.set(buf.subarray(pos, pos + size), 0);
     packer.push(_in, i === count - 1);
     pos += chunkSize;
   }
 
-  //expected count of onData calls. 16384 output chunk size
   expFlushCount = Math.ceil(packer.result.length / packer.options.chunkSize);
 
-  assert(!packer.err, 'Packer error: ' + packer.err);
+  assert(!packer.err, "Packer error: " + packer.err);
   assert.deepStrictEqual(packer.result, expected);
-  assert.strictEqual(flushCount, expFlushCount, 'onData called ' + flushCount + 'times, expected: ' + expFlushCount);
+  assert.strictEqual(
+    flushCount,
+    expFlushCount,
+    "onData called " + flushCount + "times, expected: " + expFlushCount,
+  );
 }
 
-describe('Small input chunks', () => {
-
-  it('deflate 100b by 1b chunk', () => {
+describe("Small input chunks", () => {
+  it("deflate 100b by 1b chunk", () => {
     const buf = randomBuf(100);
     const deflated = pako.deflate(buf);
     testChunk(buf, deflated, new pako.Deflate(), 1);
   });
 
-  it('deflate 20000b by 10b chunk', () => {
+  it("deflate 20000b by 10b chunk", () => {
     const buf = randomBuf(20000);
     const deflated = pako.deflate(buf);
     testChunk(buf, deflated, new pako.Deflate(), 10);
   });
 
-  it('inflate 100b result by 1b chunk', () => {
+  it("inflate 100b result by 1b chunk", () => {
     const buf = randomBuf(100);
     const deflated = pako.deflate(buf);
     testChunk(deflated, buf, new pako.Inflate(), 1);
   });
 
-  it('inflate 20000b result by 10b chunk', () => {
+  it("inflate 20000b result by 10b chunk", () => {
     const buf = randomBuf(20000);
     const deflated = pako.deflate(buf);
     testChunk(deflated, buf, new pako.Inflate(), 10);
   });
-
 });
 
-
-describe('Dummy push (force end)', () => {
-
-  it('deflate end', () => {
+describe("Dummy push (force end)", () => {
+  it("deflate end", () => {
     const data = samples.lorem_utf_100k;
 
     const deflator = new pako.Deflate();
@@ -88,7 +84,7 @@ describe('Dummy push (force end)', () => {
     assert.deepStrictEqual(deflator.result, pako.deflate(data));
   });
 
-  it('inflate end', () => {
+  it("inflate end", () => {
     const data = pako.deflate(samples.lorem_utf_100k);
 
     const inflator = new pako.Inflate();
@@ -96,13 +92,10 @@ describe('Dummy push (force end)', () => {
 
     assert.deepStrictEqual(inflator.result, pako.inflate(data));
   });
-
 });
 
-
-describe('Edge condition', () => {
-
-  it('should be ok on buffer border', () => {
+describe("Edge condition", () => {
+  it("should be ok on buffer border", () => {
     let i;
     const data = new Uint8Array(1024 * 16 + 1);
 
@@ -116,13 +109,12 @@ describe('Edge condition', () => {
 
     for (i = 0; i < deflated.length; i++) {
       inflator.push(deflated.subarray(i, i + 1), false);
-      assert.ok(!inflator.err, 'Inflate failed with status ' + inflator.err);
+      assert.ok(!inflator.err, "Inflate failed with status " + inflator.err);
     }
 
     inflator.push(new Uint8Array(0));
 
-    assert.ok(!inflator.err, 'Inflate failed with status ' + inflator.err);
+    assert.ok(!inflator.err, "Inflate failed with status " + inflator.err);
     assert.deepStrictEqual(data, inflator.result);
   });
-
 });

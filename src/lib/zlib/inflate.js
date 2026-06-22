@@ -22,7 +22,7 @@
 const adler32 = require("./adler32");
 const crc32 = require("./crc32");
 const inflate_fast = require("./inffast");
-const inflate_table = require("./inftrees");
+import inflate_table from "./inftrees";
 
 const CODES = 0;
 const LENS = 1;
@@ -1718,25 +1718,17 @@ const inflateSetDictionary = (strm, dictionary) => {
   return Z_OK;
 };
 
-module.exports.inflateReset = inflateReset;
-module.exports.inflateReset2 = inflateReset2;
-module.exports.inflateResetKeep = inflateResetKeep;
-module.exports.inflateInit = inflateInit;
-module.exports.inflateInit2 = inflateInit2;
-module.exports.inflate = inflate;
-module.exports.inflateEnd = inflateEnd;
-module.exports.inflateGetHeader = inflateGetHeader;
-module.exports.inflateSetDictionary = inflateSetDictionary;
-module.exports.inflateInfo = "pako inflate (from Nodeca project)";
+const inflateInfo = "pako inflate (from Nodeca project)";
 
-/* Not implemented
-module.exports.inflateCodesUsed = inflateCodesUsed;
-module.exports.inflateCopy = inflateCopy;
-module.exports.inflateGetDictionary = inflateGetDictionary;
-module.exports.inflateMark = inflateMark;
-module.exports.inflatePrime = inflatePrime;
-module.exports.inflateSync = inflateSync;
-module.exports.inflateSyncPoint = inflateSyncPoint;
-module.exports.inflateUndermine = inflateUndermine;
-module.exports.inflateValidate = inflateValidate;
-*/
+export {
+  inflateReset,
+  inflateReset2,
+  inflateResetKeep,
+  inflateInit,
+  inflateInit2,
+  inflate,
+  inflateEnd,
+  inflateGetHeader,
+  inflateSetDictionary,
+  inflateInfo,
+};

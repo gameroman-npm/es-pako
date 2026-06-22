@@ -1,8 +1,8 @@
-const { Deflate, deflate, deflateRaw, gzip } = require("./lib/deflate");
-
-const { Inflate, inflate, inflateRaw, ungzip } = require("./lib/inflate");
-
-const constants = require("./lib/zlib/constants");
+import { Deflate, deflate, deflateRaw, gzip } from "./lib/deflate";
+import { Inflate, inflate, inflateRaw, ungzip } from "./lib/inflate";
+import strings from "./lib/utils/strings";
+import constants from "./lib/zlib/constants";
+import msg from "./lib/zlib/messages";
 
 export {
   Deflate,
@@ -14,4 +14,6 @@ export {
   inflateRaw,
   ungzip,
   constants,
+  msg,
+  strings,
 };

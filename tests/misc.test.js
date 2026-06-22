@@ -1,24 +1,23 @@
-'use strict';
+import assert from "node:assert";
+import fs from "node:fs";
+import path from "node:path";
+import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
+import * as pako from "es-pako";
 
-const { describe, it } = require('node:test');
-const fs      = require('fs');
-const path    = require('path');
-const assert  = require('assert');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const pako    = require('../index');
-
-describe('ArrayBuffer', () => {
-
-  const file   = path.join(__dirname, 'fixtures/samples/lorem_utf_100k.txt');
+describe("ArrayBuffer", () => {
+  const file = path.join(__dirname, "fixtures/samples/lorem_utf_100k.txt");
   const sample = new Uint8Array(fs.readFileSync(file));
   const deflated = pako.deflate(sample);
 
-  it('Deflate ArrayBuffer', () => {
+  it("Deflate ArrayBuffer", () => {
     assert.deepStrictEqual(deflated, pako.deflate(sample.buffer));
   });
 
-  it('Inflate ArrayBuffer', () => {
+  it("Inflate ArrayBuffer", () => {
     assert.deepStrictEqual(sample, pako.inflate(deflated.buffer));
   });
 });

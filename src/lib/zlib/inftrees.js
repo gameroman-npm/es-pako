@@ -356,4 +356,4 @@ const inflate_table = (
   return 0;
 };
 
-module.exports = inflate_table;
+export default inflate_table;

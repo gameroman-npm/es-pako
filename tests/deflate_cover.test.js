@@ -1,22 +1,23 @@
+import assert from "node:assert";
+import fs from "node:fs";
+import path from "node:path";
 // Deflate coverage tests
-'use strict';
+import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
+import * as pako from "es-pako";
 
-const { describe, it } = require('node:test');
-const assert = require('assert');
-const fs = require('fs');
-const path  = require('path');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const c = require('../lib/zlib/constants');
-const msg = require('../lib/zlib/messages');
-const zlib_deflate = require('../lib/zlib/deflate');
-const ZStream = require('../lib/zlib/zstream');
+const c = pako.constants;
+const msg = pako.msg;
+const zlib_deflate = pako.deflate;
+import ZStream from "../src/lib/zlib/zstream.js";
 
-const pako  = require('../index');
-
-
-const short_sample = 'hello world';
-const long_sample = fs.readFileSync(path.join(__dirname, 'fixtures/samples/lorem_en_100k.txt'));
+const short_sample = "hello world";
+const long_sample = fs.readFileSync(
+  path.join(__dirname, "fixtures/samples/lorem_en_100k.txt"),
+);
 
 function testDeflate(data, opts, flush) {
   const deflator = new pako.Deflate(opts);
@@ -26,35 +27,33 @@ function testDeflate(data, opts, flush) {
   assert.strictEqual(deflator.err, 0, msg[deflator.err]);
 }
 
-describe('Deflate support', () => {
-  it('stored', () => {
+describe("Deflate support", () => {
+  it("stored", () => {
     testDeflate(short_sample, { level: 0, chunkSize: 200 }, 0);
     testDeflate(short_sample, { level: 0, chunkSize: 10 }, 5);
   });
-  it('fast', () => {
+  it("fast", () => {
     testDeflate(short_sample, { level: 1, chunkSize: 10 }, 5);
     testDeflate(long_sample, { level: 1, memLevel: 1, chunkSize: 10 }, 0);
   });
-  it('slow', () => {
+  it("slow", () => {
     testDeflate(short_sample, { level: 4, chunkSize: 10 }, 5);
     testDeflate(long_sample, { level: 9, memLevel: 1, chunkSize: 10 }, 0);
   });
-  it('rle', () => {
+  it("rle", () => {
     testDeflate(short_sample, { strategy: 3 }, 0);
     testDeflate(short_sample, { strategy: 3, chunkSize: 10 }, 5);
     testDeflate(long_sample, { strategy: 3, chunkSize: 10 }, 0);
   });
-  it('huffman', () => {
+  it("huffman", () => {
     testDeflate(short_sample, { strategy: 2 }, 0);
     testDeflate(short_sample, { strategy: 2, chunkSize: 10 }, 5);
     testDeflate(long_sample, { strategy: 2, chunkSize: 10 }, 0);
-
   });
 });
 
-describe('Deflate states', () => {
-  //in port checking input parameters was removed
-  it('inflate bad parameters', () => {
+describe("Deflate states", () => {
+  it("inflate bad parameters", () => {
     let ret, strm;
 
     ret = zlib_deflate.deflate(null, 0);
@@ -85,7 +84,6 @@ describe('Deflate states', () => {
     ret = zlib_deflate.deflateEnd(null);
     assert(ret === c.Z_STREAM_ERROR);
 
-    //BS_NEED_MORE
     strm.state.status = 5;
     ret = zlib_deflate.deflateEnd(strm);
     assert(ret === c.Z_STREAM_ERROR);
