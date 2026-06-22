@@ -1,7 +1,12 @@
 {
   "name": "es-pako",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "(MIT AND Zlib)",
+  "author": "gameroman",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gameroman-npm/es-pako.git"
+  },
   "files": [
     "dist"
   ],
@@ -26,5 +31,8 @@
     "oxlint-tsgolint": "0.23.0",
     "tsdown": "0.22.3",
     "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }
