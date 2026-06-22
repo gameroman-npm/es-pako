@@ -287,3 +287,96 @@ describe("pako patches for inflate", () => {
     });
   });
 });
+
+describe("Inflate concatenated members", () => {
+  it("gzip file with two members decodes both", () => {
+    const data = Buffer.concat([
+      zlib.gzipSync(Buffer.from("foo")),
+      zlib.gzipSync(Buffer.from("bar")),
+    ]);
+
+    assert.strictEqual(Buffer.from(pako.ungzip(data)).toString(), "foobar");
+    assert.deepStrictEqual(
+      pako.ungzip(data),
+      new Uint8Array(zlib.gunzipSync(data)),
+    );
+  });
+
+  it("anything after the first zlib stream is ignored", () => {
+    const data = Buffer.concat([
+      zlib.deflateSync(Buffer.from("AAA")),
+      zlib.deflateSync(Buffer.from("BBB")),
+    ]);
+
+    assert.strictEqual(Buffer.from(pako.inflate(data)).toString(), "AAA");
+    assert.deepStrictEqual(
+      pako.inflate(data),
+      new Uint8Array(zlib.inflateSync(data)),
+    );
+  });
+
+  it("autodetect over zlib: does not loop into trailing data", () => {
+    const data = Buffer.concat([
+      zlib.deflateSync(Buffer.from("xyz")),
+      zlib.deflateSync(Buffer.from("qqq")),
+    ]);
+
+    const inflator = new pako.Inflate();
+    inflator.push(data, true);
+    assert.strictEqual(inflator.err, 0);
+    assert.strictEqual(Buffer.from(inflator.result).toString(), "xyz");
+  });
+});
+
+describe("Inflate gzip trailing zero padding via ArrayBuffer", () => {
+  it("does not misread zero padding as a new member", () => {
+    const gz = zlib.gzipSync(Buffer.from("padded"));
+    const padded = Buffer.concat([gz, Buffer.alloc(8)]);
+    const ab = padded.buffer.slice(
+      padded.byteOffset,
+      padded.byteOffset + padded.byteLength,
+    );
+
+    assert.deepStrictEqual(
+      pako.ungzip(ab),
+      new Uint8Array(zlib.gunzipSync(padded)),
+    );
+    assert.strictEqual(Buffer.from(pako.ungzip(ab)).toString(), "padded");
+  });
+});
+
+describe("Inflate truncated input", () => {
+  const full = zlib.deflateSync(Buffer.from("some longer payload to truncate"));
+  const trunc = full.subarray(0, full.length - 5);
+
+  it("one-shot inflate throws on incomplete data", () => {
+    assert.throws(() => pako.inflate(trunc));
+    assert.throws(() => zlib.inflateSync(trunc));
+  });
+
+  it("streaming push(..., true) reports an error", () => {
+    const inflator = new pako.Inflate();
+    const ok = inflator.push(trunc, true);
+
+    assert.strictEqual(ok, false);
+    assert.notStrictEqual(inflator.err, 0);
+    assert.strictEqual(typeof inflator.result, "undefined");
+  });
+
+  it("raw truncated input also throws", () => {
+    const fullRaw = zlib.deflateRawSync(
+      Buffer.from("payload that will be cut"),
+    );
+    const truncRaw = fullRaw.subarray(0, fullRaw.length - 4);
+
+    assert.throws(() => pako.inflateRaw(truncRaw));
+    assert.throws(() => zlib.inflateRawSync(truncRaw));
+  });
+
+  it("complete input still succeeds", () => {
+    assert.deepStrictEqual(
+      pako.inflate(full),
+      new Uint8Array(zlib.inflateSync(full)),
+    );
+  });
+});
