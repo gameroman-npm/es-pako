@@ -237,8 +237,9 @@ Inflate.prototype.push = function (data, flush_mode) {
     while (
       strm.avail_in > 0 &&
       status === c.Z_STREAM_END &&
-      strm.state.wrap > 0 &&
-      data[strm.next_in] !== 0
+      strm.state.wrap & 2 &&
+      strm.state.flags !== 0 &&
+      strm.input[strm.next_in] !== 0
     ) {
       zlib_inflate.inflateReset(strm);
       status = zlib_inflate.inflate(strm, _flush_mode);
@@ -298,7 +299,12 @@ Inflate.prototype.push = function (data, flush_mode) {
     }
 
     // Must repeat iteration if out buffer is full
-    if (status === c.Z_OK && last_avail_out === 0) continue;
+    if (
+      (status === c.Z_OK || status === c.Z_BUF_ERROR) &&
+      last_avail_out === 0
+    ) {
+      continue;
+    }
 
     // Finalize if end of stream reached.
     if (status === c.Z_STREAM_END) {
@@ -308,7 +314,15 @@ Inflate.prototype.push = function (data, flush_mode) {
       return true;
     }
 
-    if (strm.avail_in === 0) break;
+    if (strm.avail_in === 0) {
+      if (_flush_mode === c.Z_FINISH) {
+        status = zlib_inflate.inflateEnd(this.strm);
+        this.onEnd(status === c.Z_OK ? c.Z_BUF_ERROR : status);
+        this.ended = true;
+        return false;
+      }
+      break;
+    }
   }
 
   return true;
@@ -392,7 +406,7 @@ Inflate.prototype.onEnd = function (status) {
 function inflate(input, options) {
   const inflator = new Inflate(options);
 
-  inflator.push(input);
+  inflator.push(input, true);
 
   // That will never happens, if you don't cheat with options :)
   if (inflator.err) throw inflator.msg || msg[inflator.err];
