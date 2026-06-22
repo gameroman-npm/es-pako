@@ -1,7 +1,7 @@
-import adler32 from "./adler32";
-import crc32 from "./crc32";
-import inflate_fast from "./inffast";
-import inflate_table from "./inftrees";
+import adler32 from "./adler32.js";
+import crc32 from "./crc32.js";
+import inflate_fast from "./inffast.js";
+import inflate_table from "./inftrees.js";
 
 const CODES = 0;
 const LENS = 1;
@@ -10,7 +10,7 @@ const DISTS = 2;
 /* Public constants ==========================================================*/
 /* ===========================================================================*/
 
-import * as c from "./constants";
+import * as c from "./constants.ts";
 
 /* STATES ====================================================================*/
 /* ===========================================================================*/

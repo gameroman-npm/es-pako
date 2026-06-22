@@ -1,7 +1,7 @@
-import adler32 from "./adler32";
-import * as c from "./constants";
-import crc32 from "./crc32";
-import msg from "./messages";
+import adler32 from "./adler32.js";
+import * as c from "./constants.ts";
+import crc32 from "./crc32.js";
+import msg from "./messages.ts";
 /* Public constants ==========================================================*/
 /* ===========================================================================*/
 import {
@@ -10,7 +10,7 @@ import {
   _tr_flush_block,
   _tr_tally,
   _tr_align,
-} from "./trees";
+} from "./trees.js";
 
 /*============================================================================*/
 

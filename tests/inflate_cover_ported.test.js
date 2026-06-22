@@ -6,7 +6,7 @@ import * as pako from "es-pako";
 
 import * as zlib_inflate from "../src/lib/zlib/inflate.js";
 import inflate_table from "../src/lib/zlib/inftrees.js";
-import msg from "../src/lib/zlib/messages.js";
+import msg from "../src/lib/zlib/messages.ts";
 
 const c = pako.constants;
 

@@ -7,8 +7,8 @@ import { fileURLToPath } from "node:url";
 
 import * as pako from "es-pako";
 
-import zlib_deflate from "../src/lib/zlib/deflate.js";
-import msg from "../src/lib/zlib/messages";
+import * as zlib_deflate from "../src/lib/zlib/deflate.js";
+import msg from "../src/lib/zlib/messages.ts";
 import ZStream from "../src/lib/zlib/zstream.js";
 
 const c = pako.constants;
