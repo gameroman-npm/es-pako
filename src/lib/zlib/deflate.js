@@ -532,7 +532,7 @@ const deflate_stored = (s, flush) => {
      * available input data and output space. Set left to how much of that
      * would be copied from what's left in the window.
      */
-    len = 65535 /* MAX_STORED */; /* maximum deflate stored block length */
+    len = 65535; /* MAX_STORED */ /* maximum deflate stored block length */
     have = (s.bi_valid + 42) >> 3; /* number of header bytes */
     if (s.strm.avail_out < have) {
       /* need room for header */
@@ -764,7 +764,7 @@ const deflate_fast = (s, flush) => {
     /* Insert the string window[strstart .. strstart+2] in the
      * dictionary, and set hash_head to the head of the hash chain:
      */
-    hash_head = 0 /*NIL*/;
+    hash_head = 0; /*NIL*/
     if (s.lookahead >= MIN_MATCH) {
       hash_head = INSERT_STRING(s, s.strstart);
     }
@@ -898,7 +898,7 @@ const deflate_slow = (s, flush) => {
     /* Insert the string window[strstart .. strstart+2] in the
      * dictionary, and set hash_head to the head of the hash chain:
      */
-    hash_head = 0 /*NIL*/;
+    hash_head = 0; /*NIL*/
     if (s.lookahead >= MIN_MATCH) {
       hash_head = INSERT_STRING(s, s.strstart);
     }
@@ -1804,7 +1804,7 @@ const deflate = (strm, flush) => {
             : 0,
       );
       put_byte(s, s.gzhead.os & 0xff);
-      if (s.gzhead.extra && s.gzhead.extra.length) {
+      if (s.gzhead.extra?.length) {
         put_byte(s, s.gzhead.extra.length & 0xff);
         put_byte(s, (s.gzhead.extra.length >> 8) & 0xff);
       }

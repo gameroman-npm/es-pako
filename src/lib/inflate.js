@@ -113,11 +113,7 @@ function Inflate(options) {
   }
 
   // If `windowBits` not defined (and mode not raw) - set autodetect flag for gzip/deflate
-  if (
-    opt.windowBits >= 0 &&
-    opt.windowBits < 16 &&
-    !(options && options.windowBits)
-  ) {
+  if (opt.windowBits >= 0 && opt.windowBits < 16 && !options?.windowBits) {
     opt.windowBits += 32;
   }
 

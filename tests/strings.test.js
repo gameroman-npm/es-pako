@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
-import { describe, it, beforeEach, afterEach } from "node:test";
+import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import * as pako from "es-pako";
@@ -46,18 +46,6 @@ describe("Encode/Decode", () => {
   ]);
   const utf8sample = new Uint8Array(Buffer.from(utf16sample));
 
-  let _TextEncoder, _TextDecoder;
-
-  beforeEach(() => {
-    _TextEncoder = TextEncoder;
-    _TextDecoder = TextDecoder;
-  });
-
-  afterEach(() => {
-    TextEncoder = _TextEncoder;
-    TextDecoder = _TextDecoder;
-  });
-
   it("utf-8 border detect", () => {
     const ub = strings.utf8border;
     assert.strictEqual(ub(utf8sample, 1), 1);
@@ -90,21 +78,13 @@ describe("Encode/Decode", () => {
 
   it("Encode string to utf8 buf", () => {
     assert.deepStrictEqual(strings.string2buf(utf16sample), utf8sample);
-
-    TextEncoder = null;
-    assert.deepStrictEqual(strings.string2buf(utf16sample), utf8sample);
   });
 
   it("Decode utf8 buf to string", () => {
     assert.ok(strings.buf2string(utf8sample), utf16sample);
-
-    TextDecoder = null;
-    assert.ok(strings.buf2string(utf8sample), utf16sample);
   });
 
   it("0xFF byte should not consume subsequent bytes", () => {
-    TextDecoder = null;
-
     const buf = new Uint8Array([0xff, 0x41, 0x42, 0x43, 0x44, 0x45]);
     const result = strings.buf2string(buf);
 

@@ -5,7 +5,6 @@ export default defineConfig({
     typeCheck: false,
   },
   rules: {
-    "no-unnecessary-condition": "warn",
     "prefer-const": "warn",
   },
 });

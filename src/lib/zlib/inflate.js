@@ -155,7 +155,7 @@ const inflateResetKeep = (strm) => {
   state.havedict = 0;
   state.flags = -1;
   state.dmax = 32768;
-  state.head = null /*c.Z_NULL*/;
+  state.head = null; /*c.Z_NULL*/
   state.hold = 0;
   state.bits = 0;
   //state.lencode = state.distcode = state.next = state.codes;
@@ -225,11 +225,11 @@ const inflateInit2 = (strm, windowBits) => {
   //Tracev((stderr, "inflate: allocated\n"));
   strm.state = state;
   state.strm = strm;
-  state.window = null /*c.Z_NULL*/;
+  state.window = null; /*c.Z_NULL*/
   state.mode = HEAD; /* to pass state test in inflateReset2() */
   const ret = inflateReset2(strm, windowBits);
   if (ret !== c.Z_OK) {
-    strm.state = null /*c.Z_NULL*/;
+    strm.state = null; /*c.Z_NULL*/
   }
   return ret;
 };
@@ -436,7 +436,7 @@ const inflate = (strm, flush) => {
           if (state.wbits === 0) {
             state.wbits = 15;
           }
-          state.check = 0 /*crc32(0L, c.Z_NULL, 0)*/;
+          state.check = 0; /*crc32(0L, c.Z_NULL, 0)*/
           //=== CRC2(state.check, hold);
           hbuf[0] = hold & 0xff;
           hbuf[1] = (hold >>> 8) & 0xff;
@@ -487,7 +487,7 @@ const inflate = (strm, flush) => {
 
         state.flags = 0; /* indicate zlib header */
         //Tracev((stderr, "inflate:   zlib header ok\n"));
-        strm.adler = state.check = 1 /*adler32(0L, c.Z_NULL, 0)*/;
+        strm.adler = state.check = 1; /*adler32(0L, c.Z_NULL, 0)*/
         state.mode = hold & 0x200 ? DICTID : TYPE;
         //=== INITBITS();
         hold = 0;
@@ -617,7 +617,7 @@ const inflate = (strm, flush) => {
           bits = 0;
           //===//
         } else if (state.head) {
-          state.head.extra = null /*c.Z_NULL*/;
+          state.head.extra = null; /*c.Z_NULL*/
         }
         state.mode = EXTRA;
       /* falls through */
@@ -784,7 +784,7 @@ const inflate = (strm, flush) => {
           //---
           return c.Z_NEED_DICT;
         }
-        strm.adler = state.check = 1 /*adler32(0L, c.Z_NULL, 0)*/;
+        strm.adler = state.check = 1; /*adler32(0L, c.Z_NULL, 0)*/
         state.mode = TYPE;
       /* falls through */
       case TYPE:
@@ -811,7 +811,7 @@ const inflate = (strm, flush) => {
           bits += 8;
         }
         //===//
-        state.last = hold & 0x01 /*BITS(1)*/;
+        state.last = hold & 0x01; /*BITS(1)*/
         //--- DROPBITS(1) ---//
         hold >>>= 1;
         bits -= 1;
@@ -1307,7 +1307,7 @@ const inflate = (strm, flush) => {
             bits += 8;
           }
           //===//
-          state.length += hold & ((1 << state.extra) - 1) /*BITS(state.extra)*/;
+          state.length += hold & ((1 << state.extra) - 1); /*BITS(state.extra)*/
           //--- DROPBITS(state.extra) ---//
           hold >>>= state.extra;
           bits -= state.extra;
@@ -1402,7 +1402,7 @@ const inflate = (strm, flush) => {
             bits += 8;
           }
           //===//
-          state.offset += hold & ((1 << state.extra) - 1) /*BITS(state.extra)*/;
+          state.offset += hold & ((1 << state.extra) - 1); /*BITS(state.extra)*/
           //--- DROPBITS(state.extra) ---//
           hold >>>= state.extra;
           bits -= state.extra;
