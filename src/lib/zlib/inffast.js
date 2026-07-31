@@ -106,19 +106,19 @@ export default function inflate_fast(strm, start) {
 
     dolen: for (;;) {
       // Goto emulation
-      op = here >>> 24 /*here.bits*/;
+      op = here >>> 24; /*here.bits*/
       hold >>>= op;
       bits -= op;
-      op = (here >>> 16) & 0xff /*here.op*/;
+      op = (here >>> 16) & 0xff; /*here.op*/
       if (op === 0) {
         /* literal */
         //Tracevv((stderr, here.val >= 0x20 && here.val < 0x7f ?
         //        "inflate:         literal '%c'\n" :
         //        "inflate:         literal 0x%02x\n", here.val));
-        output[_out++] = here & 0xffff /*here.val*/;
+        output[_out++] = here & 0xffff; /*here.val*/
       } else if (op & 16) {
         /* length base */
-        len = here & 0xffff /*here.val*/;
+        len = here & 0xffff; /*here.val*/
         op &= 15; /* number of extra bits */
         if (op) {
           if (bits < op) {
@@ -140,14 +140,14 @@ export default function inflate_fast(strm, start) {
 
         dodist: for (;;) {
           // goto emulation
-          op = here >>> 24 /*here.bits*/;
+          op = here >>> 24; /*here.bits*/
           hold >>>= op;
           bits -= op;
-          op = (here >>> 16) & 0xff /*here.op*/;
+          op = (here >>> 16) & 0xff; /*here.op*/
 
           if (op & 16) {
             /* distance base */
-            dist = here & 0xffff /*here.val*/;
+            dist = here & 0xffff; /*here.val*/
             op &= 15; /* number of extra bits */
             if (bits < op) {
               hold += input[_in++] << bits;

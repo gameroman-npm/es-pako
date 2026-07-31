@@ -160,7 +160,7 @@ function StaticTreeDesc(
   this.max_length = max_length; /* max bit length for the codes */
 
   // show if `static_tree` has data or dummy - needed for monomorphic objects
-  this.has_stree = static_tree && static_tree.length;
+  this.has_stree = static_tree?.length;
 }
 
 let static_l_desc;
@@ -294,7 +294,7 @@ const gen_bitlen = (s, desc) => {
     if (n >= base) {
       xbits = extra[n - base];
     }
-    f = tree[n * 2] /*.Freq*/;
+    f = tree[n * 2]; /*.Freq*/
     s.opt_len += f * (bits + xbits);
     if (has_stree) {
       s.static_len += f * (stree[n * 2 + 1] /*.Len*/ + xbits);
@@ -336,7 +336,7 @@ const gen_bitlen = (s, desc) => {
       }
       if (tree[m * 2 + 1] /*.Len*/ !== bits) {
         // Tracev((stderr,"code %d bits %d->%d\n", m, tree[m].Len, bits));
-        s.opt_len += (bits - tree[m * 2 + 1]) /*.Len*/ * tree[m * 2] /*.Freq*/;
+        s.opt_len += (bits - tree[m * 2 + 1]) /*.Len*/ * tree[m * 2]; /*.Freq*/
         tree[m * 2 + 1] /*.Len*/ = bits;
       }
       n--;
@@ -696,7 +696,7 @@ const build_tree = (s, desc) => {
     s.opt_len--;
 
     if (has_stree) {
-      s.static_len -= stree[node * 2 + 1] /*.Len*/;
+      s.static_len -= stree[node * 2 + 1]; /*.Len*/
     }
     /* node is 0 or 1 so it does not have extra bits */
   }
@@ -727,7 +727,7 @@ const build_tree = (s, desc) => {
     s.heap[--s.heap_max] = m;
 
     /* Create a new node father of n and m */
-    tree[node * 2] /*.Freq*/ = tree[n * 2] /*.Freq*/ + tree[m * 2] /*.Freq*/;
+    tree[node * 2] /*.Freq*/ = tree[n * 2] /*.Freq*/ + tree[m * 2]; /*.Freq*/
     s.depth[node] = (s.depth[n] >= s.depth[m] ? s.depth[n] : s.depth[m]) + 1;
     tree[n * 2 + 1] /*.Dad*/ = tree[m * 2 + 1] /*.Dad*/ = node;
 
@@ -774,7 +774,7 @@ const scan_tree = (s, tree, max_code) => {
 
   for (n = 0; n <= max_code; n++) {
     curlen = nextlen;
-    nextlen = tree[(n + 1) * 2 + 1] /*.Len*/;
+    nextlen = tree[(n + 1) * 2 + 1]; /*.Len*/
 
     if (++count < max_count && curlen === nextlen) {
       continue;
@@ -834,7 +834,7 @@ const send_tree = (s, tree, max_code) => {
 
   for (n = 0; n <= max_code; n++) {
     curlen = nextlen;
-    nextlen = tree[(n + 1) * 2 + 1] /*.Len*/;
+    nextlen = tree[(n + 1) * 2 + 1]; /*.Len*/
 
     if (++count < max_count && curlen === nextlen) {
       continue;
