@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
-import { describe, it, beforeEach, afterEach } from "node:test";
+import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import * as pako from "es-pako";
