@@ -1,4 +1,4 @@
-import * as utils from "./utils/common";
+import { flattenChunks } from "./utils/common";
 import * as strings from "./utils/strings";
 import GZheader from "./zlib/gzheader";
 import * as zlib_inflate from "./zlib/inflate";
@@ -93,7 +93,7 @@ import * as c from "./zlib/constants";
  **/
 class Inflate {
   constructor(options) {
-    this.options = utils.assign(
+    this.options = Object.assign(
       {
         chunkSize: 1024 * 64,
         windowBits: 15,
@@ -352,7 +352,7 @@ class Inflate {
       if (this.options.to === "string") {
         this.result = this.chunks.join("");
       } else {
-        this.result = utils.flattenChunks(this.chunks);
+        this.result = flattenChunks(this.chunks);
       }
     }
     this.chunks = [];
