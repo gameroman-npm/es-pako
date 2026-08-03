@@ -53,9 +53,7 @@ export default function inflate_fast(strm, start) {
   let s_window; /* allocated sliding window, if wsize != 0 */
   let hold; /* local strm.hold */
   let bits; /* local strm.bits */
-  let lcode; /* local strm.lencode */
   let dcode; /* local strm.distcode */
-  let lmask; /* mask for first level of length codes */
   let dmask; /* mask for first level of distance codes */
   let here; /* retrieved table entry */
   let op; /* code bits, operation, extra bits, or */
@@ -65,7 +63,7 @@ export default function inflate_fast(strm, start) {
   let from; /* where to copy match from */
   let from_source;
 
-  let input, output; // JS specific, because we have no pointers
+  let input; // JS specific, because we have no pointers
 
   /* copy state to local variables */
   const state = strm.state;
@@ -74,7 +72,7 @@ export default function inflate_fast(strm, start) {
   input = strm.input;
   last = _in + (strm.avail_in - 5);
   _out = strm.next_out;
-  output = strm.output;
+  const output = strm.output;
   beg = _out - (start - strm.avail_out);
   end = _out + (strm.avail_out - 257);
   //#ifdef INFLATE_STRICT
@@ -86,9 +84,9 @@ export default function inflate_fast(strm, start) {
   s_window = state.window;
   hold = state.hold;
   bits = state.bits;
-  lcode = state.lencode;
+  const lcode = state.lencode;
   dcode = state.distcode;
-  lmask = (1 << state.lenbits) - 1;
+  const lmask = (1 << state.lenbits) - 1;
   dmask = (1 << state.distbits) - 1;
 
   /* decode literals and length/distances until end-of-block or not enough

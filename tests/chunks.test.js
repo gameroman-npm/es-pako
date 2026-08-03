@@ -16,7 +16,7 @@ function randomBuf(size) {
 }
 
 function testChunk(buf, expected, packer, chunkSize) {
-  let i, _in, count, pos, size, expFlushCount;
+  let i, _in, pos, size, expFlushCount;
 
   const onData = packer.onData;
   let flushCount = 0;
@@ -26,7 +26,7 @@ function testChunk(buf, expected, packer, chunkSize) {
     onData.apply(this, arguments);
   };
 
-  count = Math.ceil(buf.length / chunkSize);
+  const count = Math.ceil(buf.length / chunkSize);
   pos = 0;
   for (i = 0; i < count; i++) {
     size = buf.length - pos < chunkSize ? buf.length - pos : chunkSize;

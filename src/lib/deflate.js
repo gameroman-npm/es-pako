@@ -1,4 +1,4 @@
-import * as utils from "./utils/common";
+import { flattenChunks } from "./utils/common";
 import * as strings from "./utils/strings";
 import * as zlib_deflate from "./zlib/deflate";
 import msg from "./zlib/messages";
@@ -104,7 +104,7 @@ import * as c from "./zlib/constants";
  **/
 class Deflate {
   constructor(options) {
-    this.options = utils.assign(
+    this.options = Object.assign(
       {
         level: c.Z_DEFAULT_COMPRESSION,
         method: c.Z_DEFLATED,
@@ -289,7 +289,7 @@ class Deflate {
   onEnd(status) {
     // On success - join
     if (status === c.Z_OK) {
-      this.result = utils.flattenChunks(this.chunks);
+      this.result = flattenChunks(this.chunks);
     }
     this.chunks = [];
     this.err = status;
@@ -352,7 +352,7 @@ function deflate(input, options) {
  * (header and adler32 crc).
  **/
 function deflateRaw(input, options) {
-  options = options || {};
+  options ||= {};
   options.raw = true;
   return deflate(input, options);
 }
@@ -366,7 +366,7 @@ function deflateRaw(input, options) {
  * deflate one.
  **/
 function gzip(input, options) {
-  options = options || {};
+  options ||= {};
   options.gzip = true;
   return deflate(input, options);
 }
