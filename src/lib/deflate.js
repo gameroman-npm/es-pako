@@ -352,7 +352,7 @@ function deflate(input, options) {
  * (header and adler32 crc).
  **/
 function deflateRaw(input, options) {
-  options = options || {};
+  options ||= {};
   options.raw = true;
   return deflate(input, options);
 }
@@ -366,7 +366,7 @@ function deflateRaw(input, options) {
  * deflate one.
  **/
 function gzip(input, options) {
-  options = options || {};
+  options ||= {};
   options.gzip = true;
   return deflate(input, options);
 }

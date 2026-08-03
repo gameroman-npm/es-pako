@@ -1656,7 +1656,6 @@ const inflateGetHeader = (strm, head) => {
 const inflateSetDictionary = (strm, dictionary) => {
   const dictLength = dictionary.length;
 
-  let state;
   let dictid;
   let ret;
 
@@ -1664,7 +1663,7 @@ const inflateSetDictionary = (strm, dictionary) => {
   if (inflateStateCheck(strm)) {
     return c.Z_STREAM_ERROR;
   }
-  state = strm.state;
+  const state = strm.state;
 
   if (state.wrap !== 0 && state.mode !== DICT) {
     return c.Z_STREAM_ERROR;

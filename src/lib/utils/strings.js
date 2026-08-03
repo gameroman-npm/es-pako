@@ -35,7 +35,7 @@ export function buf2string(buf, max) {
 // buf[] - utf8 bytes array
 // max   - length limit (mandatory);
 export function utf8border(buf, max) {
-  max = max || buf.length;
+  max ||= buf.length;
   if (max > buf.length) {
     max = buf.length;
   }

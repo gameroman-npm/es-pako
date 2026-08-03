@@ -421,7 +421,7 @@ function inflate(input, options) {
  * (header and adler32 crc).
  **/
 function inflateRaw(input, options) {
-  options = options || {};
+  options ||= {};
   options.raw = true;
   return inflate(input, options);
 }
