@@ -6,5 +6,6 @@ export default defineConfig({
   },
   rules: {
     "prefer-const": "warn",
+    "unicorn/no-lonely-if": "warn",
   },
 });
